@@ -1,0 +1,7 @@
+# Шаблон конфігурації локального підключення до бази даних Neon для проєкту Svitlo++
+# ІНСТРУКЦІЯ:
+# 1. Скопіюйте цей файл у цій же папці та перейменуйте копію на "db.properties"
+# 2. Замініть значення нижче на реальний URL та пароль, які ви отримали від розробника бд
+# 3. Файл "db.properties" автоматично ігнорується Git і не потрапить на GitHub
+
+db.url=jdbc:postgresql://your-neon-host-id.eu-central-1.aws.neon.tech/neondb?user=your_db_username&password=YOUR_SECRET_PASSWORD_HERE&sslmode=require&channelBinding=require

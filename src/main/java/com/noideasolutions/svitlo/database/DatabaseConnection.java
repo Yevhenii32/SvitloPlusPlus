@@ -30,7 +30,7 @@ public class DatabaseConnection {
             try {
                 Class.forName("org.postgresql.Driver");
                 connection = DriverManager.getConnection(url);
-                System.out.println("Успішно підключено до Neon PostgreSQL (безпечний режим)!");
+                System.out.println("Успішно підключено до Neon PostgreSQL!");
             } catch (ClassNotFoundException e) {
                 System.err.println("Драйвер PostgreSQL не знайдено!");
                 e.printStackTrace();
