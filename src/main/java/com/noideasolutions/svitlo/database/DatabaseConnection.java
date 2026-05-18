@@ -5,10 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    // Шаблок
-    private static final String URL = "jdbc:postgresql://<neon-host-url>/<dbname>?sslmode=require";
-    private static final String USER = "your_username";
-    private static final String PASSWORD = "your_password";
+    private static final String URL = "jdbc:postgresql://ep-lucky-rain-al41w67r-pooler.c-3.eu-central-1.aws.neon.tech/neondb?user=neondb_owner&password=npg_YfjuXKas10rM&sslmode=require&channelBinding=require";
 
     private static Connection connection = null;
 
@@ -16,7 +13,7 @@ public class DatabaseConnection {
         if (connection == null || connection.isClosed()) {
             try {
                 Class.forName("org.postgresql.Driver");
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                connection = DriverManager.getConnection(URL);
                 System.out.println("Успішно підключено до Neon PostgreSQL!");
             } catch (ClassNotFoundException e) {
                 System.err.println("Драйвер PostgreSQL не знайдено!");
