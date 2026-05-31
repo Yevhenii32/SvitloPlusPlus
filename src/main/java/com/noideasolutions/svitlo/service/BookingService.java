@@ -33,35 +33,17 @@ public class BookingService implements IBookingService {
 
 
 
+    @Override
     public void bookSlots(Hub hub, int userId, int requestedSlots) {
         validateHub(hub);
-
-        if (userId <= 0) {
-            throw new IllegalArgumentException("User ID must be positive");
-        }
-
-        if (hub.getId() <= 0) {
-            throw new IllegalArgumentException("Hub ID must be positive");
-        }
-
-        if (requestedSlots <= 0) {
-            throw new IllegalArgumentException("Requested slots must be positive");
-        }
-
-        if (!hub.isActive()) {
-            throw new IllegalStateException("Hub is not active");
-        }
-
-        if (hub.getSlotsAvailable() > hub.getSlotsTotal()) {
-            throw new IllegalStateException("Available slots cannot be greater than total slots");
-        }
-
-        if (requestedSlots > hub.getSlotsAvailable()) {
-            throw new IllegalStateException("Not enough available slots");
-        }
+        if (userId <= 0) throw new IllegalArgumentException("User ID must be positive");
+        if (hub.getId() <= 0) throw new IllegalArgumentException("Hub ID must be positive");
+        if (requestedSlots <= 0) throw new IllegalArgumentException("Requested slots must be positive");
+        if (!hub.isActive()) throw new IllegalStateException("Hub is not active");
+        if (hub.getSlotsAvailable() > hub.getSlotsTotal()) throw new IllegalStateException("Available slots cannot be greater than total slots");
+        if (requestedSlots > hub.getSlotsAvailable()) throw new IllegalStateException("Not enough available slots");
 
         Booking booking = new Booking(userId, hub.getId(), requestedSlots);
-
         boolean saved = bookingDAO.save(booking);
 
         if (!saved) {
@@ -70,35 +52,37 @@ public class BookingService implements IBookingService {
 
         int oldSlots = hub.getSlotsAvailable();
         hub.setSlotsAvailable(oldSlots - requestedSlots);
-
         boolean updated = hubDAO.update(hub);
 
         if (!updated) {
             hub.setSlotsAvailable(oldSlots);
+            // Якщо хаб не оновився, видаляємо створене бронювання, щоб не було сміття в БД
+            bookingDAO.deleteById(booking.getId());
             throw new IllegalStateException("Failed to update hub slots in database");
         }
     }
 
     @Override
-    public void cancelBooking(Hub hub, int releasedSlots) {
+    public void cancelBooking(Hub hub, int bookingId, int releasedSlots) {
         validateHub(hub);
-
-        if (releasedSlots <= 0) {
-            throw new IllegalArgumentException("Released slots must be positive");
-        }
-
+        if (releasedSlots <= 0) throw new IllegalArgumentException("Released slots must be positive");
         if (hub.getSlotsAvailable() + releasedSlots > hub.getSlotsTotal()) {
             throw new IllegalStateException("Available slots cannot be greater than total slots");
         }
 
         int oldSlots = hub.getSlotsAvailable();
         hub.setSlotsAvailable(oldSlots + releasedSlots);
-
         boolean updated = hubDAO.update(hub);
 
         if (!updated) {
             hub.setSlotsAvailable(oldSlots);
             throw new IllegalStateException("Failed to update hub slots in database");
+        }
+
+        // Видаляємо саме бронювання з бази даних
+        boolean deleted = bookingDAO.deleteById(bookingId);
+        if (!deleted) {
+            System.err.println("Помилка: не вдалося видалити запис бронювання з БД!");
         }
     }
 

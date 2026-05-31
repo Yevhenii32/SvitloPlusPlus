@@ -20,7 +20,12 @@ class BookingServiceTest {
     private static class FakeBookingDAO extends BookingDAO {
         @Override
         public boolean save(Booking booking) {
+            booking.setId(999); // Імітуємо генерацію ID
             return true;
+        }
+        @Override
+        public boolean deleteById(int id) {
+            return true; // Імітуємо успішне видалення
         }
     }
 
@@ -226,8 +231,7 @@ class BookingServiceTest {
 
         BookingService service = createService();
 
-        service.cancelBooking(hub, 2);
-
+        service.cancelBooking(hub, 999, 2);
         assertEquals(4, hub.getSlotsAvailable());
     }
 
@@ -236,7 +240,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         BookingService service = createService();
 
-        assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, 0));
+        assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, 999, 0));
     }
 
     @Test
@@ -244,7 +248,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         BookingService service = createService();
 
-        assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, -1));
+        assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, 999, -1));
     }
 
     @Test
@@ -254,7 +258,7 @@ class BookingServiceTest {
 
         BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.cancelBooking(hub, 2));
+        assertThrows(IllegalStateException.class, () -> service.cancelBooking(hub, 999, 2));
         assertEquals(4, hub.getSlotsAvailable());
     }
 }
