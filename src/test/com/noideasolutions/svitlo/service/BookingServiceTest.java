@@ -1,21 +1,44 @@
 package com.noideasolutions.svitlo.service;
+
+import com.noideasolutions.svitlo.dao.BookingDAO;
+import com.noideasolutions.svitlo.dao.HubDAO;
+import com.noideasolutions.svitlo.model.Booking;
 import com.noideasolutions.svitlo.model.Hub;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class BookingServiceTest {
 
+    private static class FakeHubDAO extends HubDAO {
+        @Override
+        public boolean update(Hub hub) {
+            return true;
+        }
+    }
+
+    private static class FakeBookingDAO extends BookingDAO {
+        @Override
+        public boolean save(Booking booking) {
+            return true;
+        }
+    }
+
+    private BookingService createService() {
+        return new BookingService(new FakeHubDAO(), new FakeBookingDAO());
+    }
+
     @Test
     void canBookReturnsTrueWhenEnoughSlots() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertTrue(service.canBook(hub, 3));
     }
 
     @Test
     void canBookReturnsFalseWhenHubIsNull() {
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(null, 1));
     }
@@ -23,7 +46,7 @@ class BookingServiceTest {
     @Test
     void canBookReturnsFalseWhenRequestedSlotsIsZero() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(hub, 0));
     }
@@ -31,7 +54,7 @@ class BookingServiceTest {
     @Test
     void canBookReturnsFalseWhenRequestedSlotsIsNegative() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(hub, -2));
     }
@@ -41,7 +64,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         hub.setSlotsAvailable(2);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(hub, 3));
     }
@@ -51,7 +74,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         hub.setActive(false);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(hub, 1));
     }
@@ -61,7 +84,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         hub.setSlotsAvailable(6);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertFalse(service.canBook(hub, 1));
     }
@@ -69,9 +92,11 @@ class BookingServiceTest {
     @Test
     void bookSlotsDecreasesAvailableSlots() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        hub.setId(1);
 
-        service.bookSlots(hub, 2);
+        BookingService service = createService();
+
+        service.bookSlots(hub, 1, 2);
 
         assertEquals(3, hub.getSlotsAvailable());
     }
@@ -79,89 +104,119 @@ class BookingServiceTest {
     @Test
     void bookSlotsAllowsBookingAllAvailableSlots() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        hub.setId(1);
 
-        service.bookSlots(hub, 5);
+        BookingService service = createService();
+
+        service.bookSlots(hub, 1, 5);
 
         assertEquals(0, hub.getSlotsAvailable());
     }
 
     @Test
     void bookSlotsThrowsWhenHubIsNull() {
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(null, 1));
+        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(null, 1, 1));
+    }
+
+    @Test
+    void bookSlotsThrowsWhenUserIdIsInvalid() {
+        Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
+        hub.setId(1);
+
+        BookingService service = createService();
+
+        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, 0, 1));
+    }
+
+    @Test
+    void bookSlotsThrowsWhenHubIdIsInvalid() {
+        Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
+
+        BookingService service = createService();
+
+        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, 1, 1));
     }
 
     @Test
     void bookSlotsThrowsWhenRequestedSlotsIsZero() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        hub.setId(1);
 
-        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, 0));
+        BookingService service = createService();
+
+        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, 1, 0));
     }
 
     @Test
     void bookSlotsThrowsWhenRequestedSlotsIsNegative() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        hub.setId(1);
 
-        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, -1));
+        BookingService service = createService();
+
+        assertThrows(IllegalArgumentException.class, () -> service.bookSlots(hub, 1, -1));
     }
 
     @Test
     void bookSlotsThrowsWhenHubIsInactive() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
+        hub.setId(1);
         hub.setActive(false);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1));
+        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1, 1));
     }
 
     @Test
     void bookSlotsThrowsWhenNotEnoughSlots() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
+        hub.setId(1);
         hub.setSlotsAvailable(2);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 3));
+        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1, 3));
         assertEquals(2, hub.getSlotsAvailable());
     }
 
     @Test
     void bookSlotsThrowsWhenTotalSlotsIsNegative() {
         Hub hub = new Hub();
+        hub.setId(1);
         hub.setSlotsTotal(-1);
         hub.setSlotsAvailable(0);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1));
+        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1, 1));
     }
 
     @Test
     void bookSlotsThrowsWhenAvailableSlotsIsNegative() {
         Hub hub = new Hub();
+        hub.setId(1);
         hub.setSlotsTotal(5);
         hub.setSlotsAvailable(-1);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1));
+        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1, 1));
     }
 
     @Test
     void bookSlotsThrowsWhenAvailableSlotsGreaterThanTotalSlots() {
         Hub hub = new Hub();
+        hub.setId(1);
         hub.setSlotsTotal(5);
         hub.setSlotsAvailable(6);
         hub.setActive(true);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
-        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1));
+        assertThrows(IllegalStateException.class, () -> service.bookSlots(hub, 1, 1));
     }
 
     @Test
@@ -169,7 +224,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         hub.setSlotsAvailable(2);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         service.cancelBooking(hub, 2);
 
@@ -179,7 +234,7 @@ class BookingServiceTest {
     @Test
     void cancelBookingThrowsWhenReleasedSlotsIsZero() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, 0));
     }
@@ -187,7 +242,7 @@ class BookingServiceTest {
     @Test
     void cancelBookingThrowsWhenReleasedSlotsIsNegative() {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertThrows(IllegalArgumentException.class, () -> service.cancelBooking(hub, -1));
     }
@@ -197,7 +252,7 @@ class BookingServiceTest {
         Hub hub = new Hub(1, "Test Hub", "Internet and power", 50.45, 30.52, 5);
         hub.setSlotsAvailable(4);
 
-        BookingService service = new BookingService();
+        BookingService service = createService();
 
         assertThrows(IllegalStateException.class, () -> service.cancelBooking(hub, 2));
         assertEquals(4, hub.getSlotsAvailable());
