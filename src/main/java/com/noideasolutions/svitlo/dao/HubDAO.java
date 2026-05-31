@@ -100,6 +100,24 @@ public class HubDAO {
         return false;
     }
 
+    // Отримання активних хабів, у яких є вільні місця (для відображення на карті).
+    public List<Hub> findAvailableHubs() {
+        List<Hub> hubs = new ArrayList<>();
+        String sql = "SELECT * FROM hubs WHERE is_active = true AND slots_available > 0 ORDER BY created_at DESC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                hubs.add(mapRowToHub(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Помилка при отриманні доступних хабів для карти: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return hubs;
+    }
+
     // Мапінг рядка з БД в об'єкт Hub
     private Hub mapRowToHub(ResultSet rs) throws SQLException {
         Hub hub = new Hub();
