@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
@@ -35,6 +36,11 @@
     <VBox spacing="5.0">
         <Label text="Повторіть пароль:"/>
         <PasswordField fx:id="confirmPasswordField" promptText="Введіть пароль ще раз..." />
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="Оберіть роль:"/>
+        <ComboBox fx:id="roleComboBox" promptText="Оберіть роль..." prefWidth="200" />
     </VBox>
 
     <Label fx:id="statusLabel" textFill="RED" />

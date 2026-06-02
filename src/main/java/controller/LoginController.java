@@ -1,5 +1,8 @@
 package com.noideasolutions.svitlo.controller;
 
+import com.noideasolutions.svitlo.model.User;
+import com.noideasolutions.svitlo.service.AuthService;
+import com.noideasolutions.svitlo.service.UserSession;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -25,12 +28,13 @@ public class LoginController {
     @FXML
     private Label errorLabel;
 
+    private AuthService authService = new AuthService();
+
     @FXML
     public void handleLoginAction(ActionEvent event) {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Validation for empty fields
         if (username == null || username.trim().isEmpty() ||
                 password == null || password.trim().isEmpty()) {
 
@@ -39,27 +43,34 @@ public class LoginController {
             return;
         }
 
-        // TODO: Will be replaced with ViewModel and Database authentication later
-        System.out.println("Login attempt with username: " + username);
+        User user = authService.login(username, password);
 
-        // Temporary mock for successful login verification
-        errorLabel.setTextFill(Color.GREEN);
-        errorLabel.setText("Успішний вхід! (Mock)");
+        if (user != null) {
+            UserSession.getInstance().setCurrentUser(user);
+
+            try {
+                Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/MainDashboard.fxml"));
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(new Scene(root, 900, 600));
+                stage.setTitle("Svitlo++ - Головна панель");
+            } catch (IOException e) {
+                e.printStackTrace();
+                errorLabel.setTextFill(Color.RED);
+                errorLabel.setText("Помилка завантаження головного екрану.");
+            }
+        } else {
+            errorLabel.setTextFill(Color.RED);
+            errorLabel.setText("Помилка: Неправильний логін або пароль!");
+        }
     }
 
     @FXML
     public void handleGoToRegistrationAction(ActionEvent event) {
         try {
-            // Load the registration screen from resources
             Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/Registration.fxml"));
-
-            // Get the current stage from the event source
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-
-            // Adjust scene size for the registration form (it has more fields)
-            stage.setScene(new Scene(root, 400, 420));
+            stage.setScene(new Scene(root, 400, 480));
             stage.setTitle("Svitlo++ - Реєстрація");
-
         } catch (IOException e) {
             e.printStackTrace();
             errorLabel.setTextFill(Color.RED);
