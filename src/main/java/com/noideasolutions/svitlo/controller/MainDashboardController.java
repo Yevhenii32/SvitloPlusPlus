@@ -2,6 +2,9 @@ package com.noideasolutions.svitlo.controller;
 
 import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.service.UserSession;
+import com.noideasolutions.svitlo.model.Hub;
+import com.noideasolutions.svitlo.service.HubService;
+import java.util.List;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -26,8 +29,12 @@ public class MainDashboardController {
     @FXML
     private ListView<String> hubsListView;
 
+    private HubService hubService = new HubService();
+
     @FXML
+
     public void initialize() {
+
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
             userInfoLabel.setText("Користувач: " + currentUser.getUsername() + " | Роль: " + currentUser.getRole());
@@ -41,7 +48,21 @@ public class MainDashboardController {
             }
         }
 
-        hubsListView.getItems().addAll("Хаб 1 (0.5 км)", "Хаб 2 (1.2 км)", "Хаб 3 (2.0 км)");
+        // Отримуємо реальні хаби з бази даних
+        List<Hub> activeHubs = hubService.getAllActiveHubs();
+
+        // Очищаємо список перед оновленням
+        hubsListView.getItems().clear();
+
+        if (activeHubs.isEmpty()) {
+            hubsListView.getItems().add("Наразі немає доступних хабів зі світлом.");
+        } else {
+            for (Hub hub : activeHubs) {
+                String hubInfo = String.format("%s (Вільних місць: %d/%d)",
+                        hub.getTitle(), hub.getSlotsAvailable(), hub.getSlotsTotal());
+                hubsListView.getItems().add(hubInfo);
+            }
+        }
     }
 
     @FXML
