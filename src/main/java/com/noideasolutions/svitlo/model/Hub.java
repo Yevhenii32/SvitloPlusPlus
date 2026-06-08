@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 
 public class Hub {
     private int id;
+    private int ownerId;
     private int hostId; // ID користувача, який створив хаб
     private String title;
     private String description;
@@ -33,6 +34,9 @@ public class Hub {
 
     public int getHostId() { return hostId; }
     public void setHostId(int hostId) { this.hostId = hostId; }
+
+    public int getOwnerId() { return ownerId; }
+    public void setOwnerId(int ownerId) { this.ownerId = ownerId ;}
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
