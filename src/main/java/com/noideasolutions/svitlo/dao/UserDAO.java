@@ -112,4 +112,23 @@ public class UserDAO {
         user.setBlocked(rs.getBoolean("is_blocked"));
         return user;
     }
+
+    // Оновити кількість бонусних балів користувача (додати або зняти).
+    public boolean updateBonusPoints(int userId, int points) {
+        // Використовуємо відносне додавання: поточні бали + points (points може бути і від'ємним)
+        String sql = "UPDATE users SET bonus_points = bonus_points + ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, points);
+            stmt.setInt(2, userId);
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Помилка при оновленні бонусних балів користувача: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
