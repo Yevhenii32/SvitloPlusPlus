@@ -1,39 +1,52 @@
 package com.noideasolutions.svitlo.service;
 
+import com.noideasolutions.svitlo.dao.HubDAO;
+import com.noideasolutions.svitlo.dao.ReportDAO;
 import com.noideasolutions.svitlo.model.Hub;
 import com.noideasolutions.svitlo.model.Report;
+import com.noideasolutions.svitlo.exception.SvitloException;
 
 public class ReportService {
 
-    // Максимальна кількість скарг до автоматичного блокування
+    private final ReportDAO reportDAO;
+    private final HubDAO hubDAO;
     private static final int MAX_REPORTS_THRESHOLD = 3;
 
+    public ReportService() {
+        this.reportDAO = new ReportDAO();
+        this.hubDAO = new HubDAO();
+    }
+
     /**
-     * Обробляє нову скаргу від користувача.
+     * Обробляє нову скаргу від користувача та автоматично модерує хаб.
      */
     public void submitReport(int reporterId, Hub hub, String reason) {
         if (hub == null || reason == null || reason.isBlank()) {
             throw new IllegalArgumentException("Некоректні дані для скарги.");
         }
 
-        // 1. Створюємо об'єкт скарги
+        // Створюємо та зберігаємо об'єкт скарги в БД
         Report newReport = new Report(0, reporterId, hub.getId(), reason);
-        System.out.println("LOG: Отримано скаргу на хаб '" + hub.getTitle() + "'. Причина: " + reason);
+        boolean saved = reportDAO.save(newReport);
 
-        // TODO: Зберегти скаргу в базу даних через ReportDAO
-        // reportDAO.save(newReport);
+        if (!saved) {
+            throw new SvitloException("Помилка сервера: не вдалося зберегти скаргу в базу даних.");
+        }
 
-        // 2. Збільшуємо лічильник скарг хабу
+        // Збільшуємо лічильник скарг хабу в пам'яті
         int currentCount = hub.getReportCount();
         hub.setReportCount(currentCount + 1);
 
-        // 3. Перевіряємо, чи не час блокувати хаб
+        // Перевіряємо, чи не час блокувати хаб за флуд/неадекватність
         if (hub.getReportCount() >= MAX_REPORTS_THRESHOLD) {
             hub.setActive(false);
-            System.out.println(" СИСТЕМА БЕЗПЕКИ: Хаб '" + hub.getTitle() + "' АВТОМАТИЧНО ЗАБЛОКОВАНО! (Досягнуто ліміт скарг: " + hub.getReportCount() + ")");
+            System.out.println(" СИСТЕМА БЕЗПЕКИ: Хаб '" + hub.getTitle() + "' АВТОМАТИЧНО ЗАБЛОКОВАНО! (Скарг: " + hub.getReportCount() + ")");
         }
 
-        // TODO: Оновити стан хабу в базі даних (кількість скарг і статус активності)
-        // hubDAO.update(hub);
+        // Синхронізуємо новий стан хабу (кількість скарг та статус активності) з базою даних
+        boolean updated = hubDAO.update(hub);
+        if (!updated) {
+            throw new SvitloException("Помилка сервера: не вдалося оновити статус хабу після фіксації скарги.");
+        }
     }
 }
