@@ -71,6 +71,15 @@ public class BookingService implements IBookingService {
             bookingDAO.deleteById(booking.getId());
             throw new SvitloException("Помилка сервера: не вдалося оновити кількість місць у хабі.");
         }
+
+        //  ІНТЕГРАЦІЯ БОНУСНОЇ СИСТЕМИ
+        // Бронювання та оновлення хабу пройшли успішно, тепер нараховуємо бали
+        try {
+            BonusService bonusService = new BonusService();
+            bonusService.awardPointsForBooking(hub, requestedSlots);
+        } catch (Exception e) {
+            System.err.println(" Помилка гейміфікації: бронювання створено, але бонусні бали хосту не нараховано. Причина: " + e.getMessage());
+        }
     }
 
     @Override
