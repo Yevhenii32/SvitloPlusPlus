@@ -63,14 +63,23 @@ public class RegistrationController {
             return;
         }
 
-        boolean isRegistered = authService.registerUser(username, password, roleString);
+        try {
+            // Намагаємось зареєструвати
+            authService.registerUser(username, password, roleString);
 
-        if (isRegistered) {
+            // Якщо помилки не вилетіло, значить все супер
             statusLabel.setTextFill(Color.GREEN);
             statusLabel.setText("Акаунт успішно створено! Можете увійти.");
-        } else {
+
+        } catch (com.noideasolutions.svitlo.exception.DuplicateUserException e) {
+            // Якщо логін зайнятий, ловимо наш кастомний виняток
             statusLabel.setTextFill(Color.RED);
-            statusLabel.setText("Помилка реєстрації. Можливо, логін вже зайнятий.");
+            statusLabel.setText(e.getMessage());
+
+        } catch (IllegalArgumentException | com.noideasolutions.svitlo.exception.SvitloException e) {
+            // Якщо пароль закороткий або впала база даних
+            statusLabel.setTextFill(Color.RED);
+            statusLabel.setText("Помилка: " + e.getMessage());
         }
     }
 

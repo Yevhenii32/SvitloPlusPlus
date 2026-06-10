@@ -8,6 +8,7 @@ public class Booking {
     private int hubId;
     private int bookedSlots;
     private Timestamp createdAt;
+    private String hubTitle;
 
     public Booking() {}
 
@@ -33,12 +34,24 @@ public class Booking {
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
 
+    public String getHubTitle() { return hubTitle; }
+    public void setHubTitle(String hubTitle) { this.hubTitle = hubTitle; }
+
+    // Зручний метод для формування фінального рядка
+    public String getFullHubDescription() {
+        if (hubTitle == null) {
+            return "Хаб №" + hubId + ", " + bookedSlots + " місць";
+        }
+        return hubTitle + ", " + bookedSlots + " місця";
+    }
+
     @Override
     public String toString() {
         return "Booking{" +
                 "id=" + id +
                 ", userId=" + userId +
                 ", hubId=" + hubId +
+                ", hubTitle='" + hubTitle + '\'' +
                 ", slots=" + bookedSlots +
                 '}';
     }

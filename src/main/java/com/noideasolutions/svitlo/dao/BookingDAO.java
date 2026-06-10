@@ -81,4 +81,35 @@ public class BookingDAO {
         booking.setCreatedAt(rs.getTimestamp("created_at"));
         return booking;
     }
+
+    // Знайти всі бронювання конкретного користувача з назвами хабів
+    public List<Booking> findWithHubDetailsByUserId(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+
+        // SQL запит, який об'єднує таблиці за hub_id
+        String sql = "SELECT b.*, h.title AS hub_title " +
+                "FROM bookings b " +
+                "INNER JOIN hubs h ON b.hub_id = h.id " +
+                "WHERE b.user_id = ? " +
+                "ORDER BY b.created_at DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Booking booking = mapRowToBooking(rs);
+                    booking.setHubTitle(rs.getString("hub_title"));
+
+                    bookings.add(booking);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Помилка при отриманні бронювань з деталями хабу: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return bookings;
+    }
 }

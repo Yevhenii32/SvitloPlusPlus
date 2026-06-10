@@ -1,17 +1,18 @@
 package com.noideasolutions.svitlo.service;
 
-
 import com.noideasolutions.svitlo.dao.HubDAO;
 import com.noideasolutions.svitlo.model.Hub;
+import javafx.application.Platform;
 
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class RadarService {
 
     private final HubDAO hubDAO;
-    private Timer timer;
+    private ScheduledExecutorService executor;
     private boolean waitingMessageShown = false;
 
     public RadarService() {
@@ -26,20 +27,24 @@ public class RadarService {
         stopSearch();
 
         waitingMessageShown = false;
-        timer = new Timer(true);
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
+        executor = Executors.newSingleThreadScheduledExecutor();
+
+        executor.scheduleAtFixedRate(() -> {
+            try {
                 checkNearbyHubs(guestLatitude, guestLongitude, radiusKm);
+            } catch (Exception e) {
+                Platform.runLater(() ->
+                        System.err.println("Помилка в RadarService: " + e.getMessage())
+                );
             }
-        }, 0, 60_000);
+        }, 0, 60, TimeUnit.SECONDS);
     }
 
     public void stopSearch() {
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdownNow();
+            executor = null;
         }
     }
 
@@ -75,15 +80,19 @@ public class RadarService {
 
     private void showWaitingMessage() {
         if (!waitingMessageShown) {
-            System.out.println("У заданому радіусі поки немає доступних хабів. Радар продовжує пошук...");
+            Platform.runLater(() ->
+                    System.out.println("У заданому радіусі поки немає доступних хабів. Радар продовжує пошук...")
+            );
             waitingMessageShown = true;
         }
     }
 
     private void sendNotification(Hub hub, double distanceKm) {
-        System.out.println(
-                "Знайдено хаб поруч: " + hub.getTitle()
-                        + ", відстань: " + String.format("%.2f", distanceKm) + " км"
+        Platform.runLater(() ->
+                System.out.println(
+                        "Знайдено хаб поруч: " + hub.getTitle()
+                                + ", відстань: " + String.format("%.2f", distanceKm) + " км"
+                )
         );
     }
 

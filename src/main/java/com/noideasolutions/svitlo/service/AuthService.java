@@ -2,11 +2,13 @@ package com.noideasolutions.svitlo.service;
 
 import com.noideasolutions.svitlo.dao.UserDAO;
 import com.noideasolutions.svitlo.model.User;
+import com.noideasolutions.svitlo.exception.DuplicateUserException;
+import com.noideasolutions.svitlo.exception.InvalidCredentialsException;
+import com.noideasolutions.svitlo.exception.SvitloException;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class AuthService {
 
-    // Підключаємо DAO для роботи з базою
     private UserDAO userDAO;
 
     public AuthService() {
@@ -16,35 +18,28 @@ public class AuthService {
     /**
      * Реєстрація нового користувача
      */
-    public boolean registerUser(String username, String password, String role) {
-        // Базова валідація
+    public void registerUser(String username, String password, String role) {
+        // Базова валідація залишається стандартним винятком
         if (username == null || username.trim().isEmpty() || password == null || password.length() < 4) {
-            System.out.println(" Реєстрація відхилена: порожній логін або занадто короткий пароль.");
-            return false;
+            throw new IllegalArgumentException("Порожній логін або пароль коротший за 4 символи.");
         }
 
-        // Перевіряємо, чи не зайнятий такий логін
+        // ВИКОРИСТОВУЄМО НАШ КАСТОМНИЙ ВИНЯТОК
         if (userDAO.findByUsername(username) != null) {
-            System.out.println(" Реєстрація відхилена: користувач з таким іменем вже існує.");
-            return false;
+            throw new DuplicateUserException("Користувач з іменем '" + username + "' вже існує.");
         }
 
-        // Хешуємо пароль
         String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
-
-        // Створюємо об'єкт користувача з хешем замість реального пароля
         User newUser = new User(username, passwordHash, role);
 
-        // Зберігаємо в базу даних
         boolean isSaved = userDAO.save(newUser);
 
-        if (isSaved) {
-            System.out.println(" Користувача '" + username + "' успішно зареєстровано в БД!");
-            return true;
-        } else {
-            System.out.println(" Помилка при збереженні в базу даних.");
-            return false;
+        // Якщо база даних "впала", кидаємо базовий SvitloException
+        if (!isSaved) {
+            throw new SvitloException("Внутрішня помилка сервера: не вдалося зберегти користувача.");
         }
+
+        System.out.println(" Користувача '" + username + "' успішно зареєстровано в БД!");
     }
 
     /**
@@ -53,21 +48,13 @@ public class AuthService {
     public User login(String username, String password) {
         System.out.println(" Спроба входу для '" + username + "'...");
 
-        // Шукаємо користувача в БД
         User user = userDAO.findByUsername(username);
 
-        if (user == null) {
-            System.out.println(" Помилка: Користувача не знайдено.");
-            return null;
+        if (user == null || !BCrypt.checkpw(password, user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Неправильний логін або пароль.");
         }
 
-        //  Порівнюємо введений пароль із хешем із бази
-        if (BCrypt.checkpw(password, user.getPasswordHash())) {
-            System.out.println(" Вхід успішний! Вітаємо, " + username + " (Роль: " + user.getRole() + ")");
-            return user;
-        } else {
-            System.out.println(" Помилка: Неправильний пароль.");
-            return null;
-        }
+        System.out.println(" Вхід успішний! Вітаємо, " + username + " (Роль: " + user.getRole() + ")");
+        return user;
     }
 }

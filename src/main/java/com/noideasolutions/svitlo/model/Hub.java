@@ -4,6 +4,8 @@ import java.sql.Timestamp;
 
 public class Hub {
     private int id;
+    private int ownerId;
+    private int reportCount = 0; // За замовчуванням 0 скарг
     private int hostId; // ID користувача, який створив хаб
     private String title;
     private String description;
@@ -13,6 +15,7 @@ public class Hub {
     private int slotsAvailable;
     private boolean isActive;
     private Timestamp createdAt;
+
 
     public Hub() {}
 
@@ -33,6 +36,9 @@ public class Hub {
 
     public int getHostId() { return hostId; }
     public void setHostId(int hostId) { this.hostId = hostId; }
+
+    public int getOwnerId() { return ownerId; }
+    public void setOwnerId(int ownerId) { this.ownerId = ownerId ;}
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -57,6 +63,9 @@ public class Hub {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public int getReportCount() { return reportCount; }
+    public void setReportCount(int reportCount) { this.reportCount = reportCount; }
 
     @Override
     public String toString() {
