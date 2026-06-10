@@ -47,4 +47,35 @@ public class SceneSwitcher {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Метод для перемикання сцен з отриманням контролера (щоб передавати дані між вікнами).
+     */
+    public static <T> T switchToWithController(ActionEvent event, String fxmlPath, String title) {
+        try {
+            URL resource = SceneSwitcher.class.getResource(fxmlPath);
+            if (resource == null) {
+                System.err.println("Помилка: FXML файл не знайдено за шляхом: " + fxmlPath);
+                return null;
+            }
+
+            FXMLLoader loader = new FXMLLoader(resource);
+            Parent root = loader.load();
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
+
+            stage.setScene(scene);
+            stage.setTitle(title);
+            stage.show();
+
+            // Повертаємо контролер нового вікна
+            return loader.getController();
+
+        } catch (IOException e) {
+            System.err.println("Помилка завантаження сцени: " + fxmlPath);
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

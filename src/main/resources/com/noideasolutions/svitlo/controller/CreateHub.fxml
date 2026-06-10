@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.CreateHubController" stylesheets="@style.css">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label text="Створення нового хабу" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <TextField fx:id="titleField" promptText="Назва хабу"/>
+    <TextArea fx:id="descriptionArea" promptText="Опис хабу" prefRowCount="3"/>
+
+    <HBox spacing="10.0">
+        <TextField fx:id="latitudeField" promptText="Широта (наприклад, 50.4501)"/>
+        <TextField fx:id="longitudeField" promptText="Довгота (наприклад, 30.5234)"/>
+    </HBox>
+
+    <TextField fx:id="slotsField" promptText="Кількість місць"/>
+
+    <Button text="Додати хаб" onAction="#handleAddHub" prefWidth="150.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+</VBox>
