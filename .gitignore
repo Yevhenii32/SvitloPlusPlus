@@ -23,5 +23,8 @@
 hs_err_pid*
 replay_pid*
 
+.idea/
+target/
+
 # Секретні налаштування бази даних
 db.properties
