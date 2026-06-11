@@ -65,7 +65,6 @@ public class HubDetailsController {
                 return;
             }
 
-            // Код Васі для бронювання
             bookingService.bookSlots(currentHub, currentUser.getId(), requestedSlots);
             updateSlotsInfo();
 
