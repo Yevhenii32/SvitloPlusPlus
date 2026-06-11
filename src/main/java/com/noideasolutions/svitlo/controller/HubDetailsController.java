@@ -1,6 +1,9 @@
 package com.noideasolutions.svitlo.controller;
 
 import com.noideasolutions.svitlo.model.Hub;
+import com.noideasolutions.svitlo.model.User;
+import com.noideasolutions.svitlo.service.BookingService;
+import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,49 +27,119 @@ public class HubDetailsController {
 
     private Hub currentHub;
 
+    private final BookingService bookingService =
+            new BookingService();
+
     public void setHubData(Hub hub) {
         this.currentHub = hub;
+
         titleLabel.setText(hub.getTitle());
         descriptionLabel.setText(hub.getDescription());
-        slotsInfoLabel.setText("Доступно місць: " + hub.getSlotsAvailable() + " з " + hub.getSlotsTotal());
+
+        updateSlotsInfo();
+    }
+
+    private void updateSlotsInfo() {
+        slotsInfoLabel.setText(
+                "Доступно місць: "
+                        + currentHub.getSlotsAvailable()
+                        + " з "
+                        + currentHub.getSlotsTotal()
+        );
     }
 
     @FXML
     private void handleBook(ActionEvent event) {
+
         String slotsStr = bookingSlotsField.getText();
 
-        if (slotsStr.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Увага", "Введіть кількість місць для бронювання.");
+        if (slotsStr == null || slotsStr.isBlank()) {
+            showAlert(
+                    Alert.AlertType.WARNING,
+                    "Увага",
+                    "Введіть кількість місць."
+            );
             return;
         }
 
         try {
-            int requestedSlots = Integer.parseInt(slotsStr);
 
-            if (requestedSlots <= 0 || requestedSlots > currentHub.getSlotsAvailable()) {
-                showAlert(Alert.AlertType.ERROR, "Помилка", "Некоректна кількість місць.");
+            int requestedSlots =
+                    Integer.parseInt(slotsStr);
+
+            User currentUser =
+                    UserSession.getInstance()
+                            .getCurrentUser();
+
+            if (currentUser == null) {
+                showAlert(
+                        Alert.AlertType.ERROR,
+                        "Помилка",
+                        "Користувач не авторизований."
+                );
                 return;
             }
 
-            showAlert(Alert.AlertType.INFORMATION, "Успіх", "Ви успішно забронювали " + requestedSlots + " місць!");
+            bookingService.bookSlots(
+                    currentHub,
+                    currentUser.getId(),
+                    requestedSlots
+            );
 
-            SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+            updateSlotsInfo();
+
+            showAlert(
+                    Alert.AlertType.INFORMATION,
+                    "Успіх",
+                    "Заброньовано "
+                            + requestedSlots
+                            + " місць."
+            );
+
+            SceneSwitcher.switchTo(
+                    event,
+                    "/com/noideasolutions/svitlo/controller/MainDashboard.fxml",
+                    "Головне меню"
+            );
 
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Помилка", "Введіть числове значення.");
+
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Помилка",
+                    "Введіть число."
+            );
+
+        } catch (Exception e) {
+
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Помилка бронювання",
+                    e.getMessage()
+            );
         }
     }
 
     @FXML
     private void handleBack(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+        SceneSwitcher.switchTo(
+                event,
+                "/com/noideasolutions/svitlo/controller/MainDashboard.fxml",
+                "Головне меню"
+        );
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String content) {
-        Alert alert = new Alert(alertType);
+    private void showAlert(
+            Alert.AlertType type,
+            String title,
+            String message
+    ) {
+        Alert alert = new Alert(type);
+
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        alert.setContentText(message);
+
         alert.showAndWait();
     }
 }
