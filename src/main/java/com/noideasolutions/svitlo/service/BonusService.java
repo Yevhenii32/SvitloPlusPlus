@@ -22,7 +22,7 @@ public class BonusService {
         if (hub == null || bookedSlots <= 0) return;
 
         int pointsToAward = bookedSlots * POINTS_PER_SLOT;
-        int hostId = hub.getOwnerId();
+        int hostId = hub.getHostId();
 
         boolean updated = userDAO.updateBonusPoints(hostId, pointsToAward);
         if (!updated) {

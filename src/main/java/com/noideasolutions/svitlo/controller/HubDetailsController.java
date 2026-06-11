@@ -1,6 +1,8 @@
 package com.noideasolutions.svitlo.controller;
 
 import com.noideasolutions.svitlo.model.Hub;
+import com.noideasolutions.svitlo.model.User;
+import com.noideasolutions.svitlo.service.BookingService;
 import com.noideasolutions.svitlo.service.ReportService;
 import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
@@ -31,74 +33,71 @@ public class HubDetailsController {
 
     private Hub currentHub;
 
-    // 🔥 Підключаємо твій готовий сервіс скарг
+    private final BookingService bookingService = new BookingService();
     private final ReportService reportService = new ReportService();
 
     public void setHubData(Hub hub) {
         this.currentHub = hub;
         titleLabel.setText(hub.getTitle());
         descriptionLabel.setText(hub.getDescription());
-        slotsInfoLabel.setText("Доступно місць: " + hub.getSlotsAvailable() + " з " + hub.getSlotsTotal());
+        updateSlotsInfo();
+    }
+
+    private void updateSlotsInfo() {
+        slotsInfoLabel.setText("Доступно місць: " + currentHub.getSlotsAvailable() + " з " + currentHub.getSlotsTotal());
     }
 
     @FXML
     private void handleBook(ActionEvent event) {
         String slotsStr = bookingSlotsField.getText();
 
-        if (slotsStr.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Увага", "Введіть кількість місць для бронювання.");
+        if (slotsStr == null || slotsStr.isBlank()) {
+            showAlert(Alert.AlertType.WARNING, "Увага", "Введіть кількість місць.");
             return;
         }
 
         try {
             int requestedSlots = Integer.parseInt(slotsStr);
+            User currentUser = UserSession.getInstance().getCurrentUser();
 
-            if (requestedSlots <= 0 || requestedSlots > currentHub.getSlotsAvailable()) {
-                showAlert(Alert.AlertType.ERROR, "Помилка", "Некоректна кількість місць.");
+            if (currentUser == null) {
+                showAlert(Alert.AlertType.ERROR, "Помилка", "Користувач не авторизований.");
                 return;
             }
 
-            showAlert(Alert.AlertType.INFORMATION, "Успіх", "Ви успішно забронювали " + requestedSlots + " місць!");
+            // Код Васі для бронювання
+            bookingService.bookSlots(currentHub, currentUser.getId(), requestedSlots);
+            updateSlotsInfo();
+
+            showAlert(Alert.AlertType.INFORMATION, "Успіх", "Заброньовано " + requestedSlots + " місць.");
             SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
 
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Помилка", "Введіть числове значення.");
+            showAlert(Alert.AlertType.ERROR, "Помилка", "Введіть число.");
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Помилка бронювання", e.getMessage());
         }
     }
 
-    // 🔥 НОВИЙ МЕТОД: Обробка натискання на кнопку "Поскаржитись"
     @FXML
     private void handleReport(ActionEvent event) {
-        // Створюємо стандартне діалогове вікно JavaFX з текстовим полем
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Скарга на хаб");
-        dialog.setHeaderText("Повідомити про порушення або неактуальність хабу:\n\"" + currentHub.getTitle() + "\"");
+        dialog.setHeaderText("Повідомити про порушення:\n\"" + currentHub.getTitle() + "\"");
         dialog.setContentText("Опишіть причину скарги:");
 
-        // Показуємо вікно і чекаємо на введення тексту користувачем
         Optional<String> result = dialog.showAndWait();
 
-        // Якщо користувач натиснув "ОК" і ввів текст
         result.ifPresent(reason -> {
             if (reason.trim().isEmpty()) {
                 showAlert(Alert.AlertType.WARNING, "Увага", "Причина скарги не може бути порожньою!");
                 return;
             }
-
             try {
-                // Дістаємо ID поточного користувача, який залишає скаргу
                 int reporterId = UserSession.getInstance().getCurrentUser().getId();
-
-                // Викликаємо твою бізнес-логіку з ReportService
                 reportService.submitReport(reporterId, currentHub, reason);
-
-                showAlert(Alert.AlertType.INFORMATION, "Скаргу надіслано",
-                        "Дякуємо! Вашу скаргу успішно зафіксовано системою модерації.");
-
-                // Повертаємо користувача на головний екран.
-                // Якщо це була 3-тя скарга, хаб автоматично зникне зі списку, бо твій сервіс вимкне його активність!
+                showAlert(Alert.AlertType.INFORMATION, "Скаргу надіслано", "Вашу скаргу зафіксовано.");
                 SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
-
             } catch (SvitloException | IllegalArgumentException e) {
                 showAlert(Alert.AlertType.ERROR, "Помилка сервера", e.getMessage());
             }
@@ -110,11 +109,11 @@ public class HubDetailsController {
         SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String content) {
-        Alert alert = new Alert(alertType);
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        alert.setContentText(message);
         alert.showAndWait();
     }
 }
