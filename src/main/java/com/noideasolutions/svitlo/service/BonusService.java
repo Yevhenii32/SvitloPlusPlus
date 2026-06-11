@@ -18,16 +18,19 @@ public class BonusService {
     /**
      * Нараховує бали Хосту, коли Гість успішно забронював у нього місця.
      */
+ /**
+     * Нараховує бали Хосту, коли Гість успішно забронював у нього місця.
+     */
     public void awardPointsForBooking(Hub hub, int bookedSlots) {
         if (hub == null || bookedSlots <= 0) return;
 
         int pointsToAward = bookedSlots * POINTS_PER_SLOT;
         int hostId = hub.getHostId();
 
-        User host = userDAO.findById(hostId);
-
-
+        // Ми залишаємо виклик оновлення балів безпосередньо, 
+        // оскільки метод updateBonusPoints у UserDAO робить це атомарно в БД.
         boolean updated = userDAO.updateBonusPoints(hostId, pointsToAward);
+        
         if (!updated) {
             throw new SvitloException("Не вдалося нарахувати бонусні бали хосту в базі даних.");
         }
