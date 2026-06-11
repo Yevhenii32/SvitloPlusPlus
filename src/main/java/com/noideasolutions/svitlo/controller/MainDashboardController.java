@@ -34,6 +34,10 @@ public class MainDashboardController {
     private HubService hubService = new HubService();
 
     @FXML
+    private void handleOpenProfileAction(ActionEvent event) {
+        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/UserProfile.fxml", "Мій профіль");
+    }
+    @FXML
     public void initialize() {
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {

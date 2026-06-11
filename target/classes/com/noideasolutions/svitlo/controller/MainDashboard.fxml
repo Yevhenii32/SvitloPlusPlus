@@ -25,6 +25,7 @@
             </Label>
             <Label fx:id="userInfoLabel" text="Завантаження..." />
             <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS" spacing="15.0">
+                <Button text="Мій профіль" onAction="#handleOpenProfileAction" />
                 <Button text="Додати хаб" onAction="#handleCreateHubAction" style="-fx-background-color: #2196F3; -fx-text-fill: white;" />
                 <ToggleButton fx:id="roleToggleButton" onAction="#handleRoleSwitch" text="Режим гостя" />
                 <Button onAction="#handleLogoutAction" text="Вийти" />

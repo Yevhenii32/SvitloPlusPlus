@@ -7,13 +7,13 @@ public class PartnerReward {
     private String description;   // Опис товару
     private int costInPoints;     // Вартість у бонусних балах
 
-    public PartnerReward() {}
+    public PartnerReward() {
+    }
 
-    public PartnerReward(int id, String partnerName, String title, String description, int costInPoints) {
+    public PartnerReward(int id, String title, String partnerName, int costInPoints) {
         this.id = id;
-        this.partnerName = partnerName;
         this.title = title;
-        this.description = description;
+        this.partnerName = partnerName;
         this.costInPoints = costInPoints;
     }
 
