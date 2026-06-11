@@ -3,27 +3,29 @@ package com.noideasolutions.svitlo.service;
 import com.noideasolutions.svitlo.dao.HubDAO;
 import com.noideasolutions.svitlo.model.Hub;
 import javafx.application.Platform;
-
+import com.noideasolutions.svitlo.model.RadarRequest;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class RadarService {
-
+    private final SystemNotificationService notificationService;
     private final HubDAO hubDAO;
     private ScheduledExecutorService executor;
     private boolean waitingMessageShown = false;
 
     public RadarService() {
         this.hubDAO = new HubDAO();
+        this.notificationService = new SystemNotificationService();
     }
 
     public RadarService(HubDAO hubDAO) {
         this.hubDAO = hubDAO;
+        this.notificationService = new SystemNotificationService();
     }
 
-    public void startSearch(double guestLatitude, double guestLongitude, double radiusKm) {
+    public void startSearch(int guestId, double guestLatitude, double guestLongitude, double radiusKm) {
         stopSearch();
 
         waitingMessageShown = false;
@@ -32,7 +34,7 @@ public class RadarService {
 
         executor.scheduleAtFixedRate(() -> {
             try {
-                checkNearbyHubs(guestLatitude, guestLongitude, radiusKm);
+                checkNearbyHubs(guestId, guestLatitude, guestLongitude, radiusKm);
             } catch (Exception e) {
                 Platform.runLater(() ->
                         System.err.println("Помилка в RadarService: " + e.getMessage())
@@ -48,11 +50,11 @@ public class RadarService {
         }
     }
 
-    private void checkNearbyHubs(double guestLatitude, double guestLongitude, double radiusKm) {
+    private void checkNearbyHubs(int guestId, double guestLatitude, double guestLongitude, double radiusKm) {
         List<Hub> activeHubs = hubDAO.findAllActive();
 
         if (activeHubs.isEmpty()) {
-            showWaitingMessage();
+            showWaitingMessage(guestId);
             return;
         }
 
@@ -66,33 +68,29 @@ public class RadarService {
                     hub.getLongitude()
             );
 
-            if (distance <= radiusKm && hub.getSlotsAvailable() > 0) {
+            if (distance <= radiusKm && hub.getSlotsAvailable() > 0 && hub.isActive()) {
                 found = true;
                 waitingMessageShown = false;
-                sendNotification(hub, distance);
+                sendNotification(guestId, hub, distance);
             }
         }
 
         if (!found) {
-            showWaitingMessage();
+            showWaitingMessage(guestId);
         }
     }
-
-    private void showWaitingMessage() {
+    private void showWaitingMessage(int guestId) {
         if (!waitingMessageShown) {
             Platform.runLater(() ->
-                    System.out.println("У заданому радіусі поки немає доступних хабів. Радар продовжує пошук...")
+                    notificationService.notifyWaiting(guestId)
             );
             waitingMessageShown = true;
         }
     }
 
-    private void sendNotification(Hub hub, double distanceKm) {
+    private void sendNotification(int guestId, Hub hub, double distanceKm) {
         Platform.runLater(() ->
-                System.out.println(
-                        "Знайдено хаб поруч: " + hub.getTitle()
-                                + ", відстань: " + String.format("%.2f", distanceKm) + " км"
-                )
+                notificationService.notifyHubFound(guestId, hub, distanceKm)
         );
     }
 
@@ -112,5 +110,19 @@ public class RadarService {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return earthRadiusKm * c;
+    }
+    public RadarRequest createSearchRequest(int guestId, double guestLatitude, double guestLongitude) {
+        if (guestId <= 0) {
+            throw new IllegalArgumentException("Guest ID must be positive");
+        }
+
+        double defaultRadiusKm = 1.0;
+
+        return new RadarRequest(
+                guestId,
+                guestLatitude,
+                guestLongitude,
+                defaultRadiusKm
+        );
     }
 }
