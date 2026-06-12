@@ -7,7 +7,7 @@ import com.noideasolutions.svitlo.service.ReportService;
 import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
 import com.noideasolutions.svitlo.exception.SvitloException;
-
+import com.noideasolutions.svitlo.dao.UserDAO;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -23,6 +23,9 @@ public class HubDetailsController {
     private Label titleLabel;
 
     @FXML
+    private Label hostInfoLabel; // Зв'язок з новим полем у FXML
+
+    @FXML
     private Label descriptionLabel;
 
     @FXML
@@ -35,11 +38,22 @@ public class HubDetailsController {
 
     private final BookingService bookingService = new BookingService();
     private final ReportService reportService = new ReportService();
+    private final UserDAO userDAO = new UserDAO(); // Ініціалізуємо DAO
 
     public void setHubData(Hub hub) {
         this.currentHub = hub;
         titleLabel.setText(hub.getTitle());
         descriptionLabel.setText(hub.getDescription());
+
+        // Дістаємо хоста з бази і виводимо його рейтинг
+        User host = userDAO.findById(hub.getHostId());
+        if (host != null) {
+            // Форматуємо рядок
+            hostInfoLabel.setText(String.format("Власник: %s (⭐ %.1f)", host.getUsername(), host.getRating()));
+        } else {
+            hostInfoLabel.setText("Власник: Невідомо");
+        }
+
         updateSlotsInfo();
     }
 

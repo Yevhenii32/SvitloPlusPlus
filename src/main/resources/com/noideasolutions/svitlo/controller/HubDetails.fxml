@@ -12,6 +12,7 @@
     </padding>
 
     <Label fx:id="titleLabel" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <Label fx:id="hostInfoLabel" style="-fx-font-weight: bold; -fx-text-fill: #FF9800; -fx-font-size: 14px;"/>
     <Label fx:id="descriptionLabel" wrapText="true"/>
     <Label fx:id="slotsInfoLabel" style="-fx-font-style: italic;"/>
 
