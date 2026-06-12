@@ -4,16 +4,21 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<?import javafx.scene.control.TextArea?>
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.CreateHubController" stylesheets="@style.css">
+<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.CreateHubController">
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
     </padding>
 
-    <Label text="Створення нового хабу" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <HBox alignment="CENTER_LEFT" spacing="15.0" prefWidth="400.0">
+        <Button text="← Назад" onAction="#handleBackAction" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-cursor: hand;" />
+        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+            <Label text="Створення нового хабу" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        </HBox>
+    </HBox>
 
     <TextField fx:id="titleField" promptText="Назва хабу"/>
     <TextArea fx:id="descriptionArea" promptText="Опис хабу" prefRowCount="3"/>

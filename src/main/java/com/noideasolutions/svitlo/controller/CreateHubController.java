@@ -74,4 +74,10 @@ public class CreateHubController {
         alert.setContentText(content);
         alert.showAndWait();
     }
+
+    @FXML
+    private void handleBackAction(ActionEvent event) {
+        // Повертаємо користувача на головну панель
+        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головна панель");
+    }
 }
