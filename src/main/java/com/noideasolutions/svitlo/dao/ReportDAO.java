@@ -35,4 +35,25 @@ public class ReportDAO {
         }
         return false;
     }
+    // Перевірка, чи не надсилав цей користувач вже скаргу на цей конкретний хаб
+    public boolean hasUserAlreadyReported(int reporterId, int hubId) {
+        String sql = "SELECT COUNT(*) FROM reports WHERE reporter_id = ? AND hub_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, reporterId);
+            stmt.setInt(2, hubId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // Якщо кількість більша за 0, значить скарга вже є
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Помилка при перевірці дублікатів скарг: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false; // За замовчуванням дозволяємо, якщо сталась помилка
+    }
 }

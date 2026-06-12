@@ -43,24 +43,28 @@ public class LoginController {
             return;
         }
 
-        User user = authService.login(username, password);
+        // 🚨 Обгортаємо в try-catch для перехоплення помилок авторизації та бану
+        try {
+            User user = authService.login(username, password);
 
-        if (user != null) {
-            UserSession.getInstance().setCurrentUser(user);
+            if (user != null) {
+                UserSession.getInstance().setCurrentUser(user);
 
-            try {
-                Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/MainDashboard.fxml"));
-                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                stage.setScene(new Scene(root, 900, 600));
-                stage.setTitle("Svitlo++ - Головна панель");
-            } catch (IOException e) {
-                e.printStackTrace();
-                errorLabel.setTextFill(Color.RED);
-                errorLabel.setText("Помилка завантаження головного екрану.");
+                try {
+                    Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/MainDashboard.fxml"));
+                    Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                    stage.setScene(new Scene(root, 900, 600));
+                    stage.setTitle("Svitlo++ - Головна панель");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    errorLabel.setTextFill(Color.RED);
+                    errorLabel.setText("Помилка завантаження головного екрану.");
+                }
             }
-        } else {
+        } catch (com.noideasolutions.svitlo.exception.SvitloException e) {
+            // Сюди прилетить повідомлення про неправильний пароль АБО про те, що акаунт заблоковано
             errorLabel.setTextFill(Color.RED);
-            errorLabel.setText("Помилка: Неправильний логін або пароль!");
+            errorLabel.setText(e.getMessage());
         }
     }
 
