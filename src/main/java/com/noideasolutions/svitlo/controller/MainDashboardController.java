@@ -4,9 +4,14 @@ import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.model.Hub;
 import com.noideasolutions.svitlo.service.HubService;
-import java.util.List;
-import javafx.scene.input.MouseEvent;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javafx.application.Platform;
+import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,9 +21,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import javax.swing.SwingUtilities;
+
+import org.mapsforge.core.model.LatLong;
+import org.mapsforge.map.awt.graphics.AwtGraphicFactory;
+import org.mapsforge.map.awt.util.AwtUtil;
+import org.mapsforge.map.awt.view.MapView;
+import org.mapsforge.map.datastore.MapDataStore;
+import org.mapsforge.map.layer.cache.TileCache;
+import org.mapsforge.map.layer.renderer.TileRendererLayer;
+import org.mapsforge.map.reader.MapFile;
+import org.mapsforge.map.rendertheme.InternalRenderTheme;
 
 public class MainDashboardController {
 
@@ -31,12 +48,17 @@ public class MainDashboardController {
     @FXML
     private ListView<String> hubsListView;
 
+    @FXML
+    private StackPane mapContainer;
+
     private HubService hubService = new HubService();
+    private MapView mapView; // Swing-компонент карти
 
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
         SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/UserProfile.fxml", "Мій профіль");
     }
+
     @FXML
     public void initialize() {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -71,32 +93,82 @@ public class MainDashboardController {
         // Обробка подвійного кліку по списку
         hubsListView.setOnMouseClicked((MouseEvent event) -> {
             if (event.getClickCount() == 2) {
-                // Отримуємо ПОРЯДКОВИЙ НОМЕР рядка, по якому клікнули
                 int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
-
-                // Перевіряємо, чи клік був по реальному хабу
                 if (selectedIndex >= 0 && !activeHubs.isEmpty()) {
-                    // Дістаємо справжній об'єкт Hub з нашого списку за цим індексом
                     Hub selectedHub = activeHubs.get(selectedIndex);
                     openHubDetails(event, selectedHub);
                 }
             }
         });
+
+        // Запускаємо ініціалізацію нашої офлайн-карти
+        initOfflineMap();
     }
 
-    //  Відкриває деталі і передає туди дані хабу
+    private void initOfflineMap() {
+        // Створюємо міст між JavaFX та Swing
+        SwingNode swingNode = new SwingNode();
+        mapContainer.getChildren().add(swingNode);
+
+        // Весь код Swing МАЄ виконуватися в окремому потоці
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // 1. Створюємо саму карту
+                mapView = new MapView();
+                mapView.getMapScaleBar().setVisible(true);
+
+                // 2. Використовуємо кеш у пам'яті (вирішує проблему з AwtUtil)
+                TileCache tileCache = new org.mapsforge.map.layer.cache.InMemoryTileCache(500);
+
+                // 3. Шукаємо наш файл
+                File mapFile = new File("ukraine.map");
+                if (!mapFile.exists()) {
+                    System.err.println("ПОМИЛКА: Файл kyiv.map не знайдено в кореневій папці проєкту!");
+                    return; // Зупиняємо завантаження карти, якщо файлу немає
+                }
+
+                MapDataStore mapDataStore = new MapFile(mapFile);
+
+                // 4. Налаштовуємо шар рендерингу (малювання вулиць і будинків)
+                TileRendererLayer tileRendererLayer = new TileRendererLayer(
+                        tileCache,
+                        mapDataStore,
+                        mapView.getModel().mapViewPosition,
+                        AwtGraphicFactory.INSTANCE
+                );
+
+                // 5. Встановлюємо стандартну тему OSM
+                tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.OSMARENDER);
+                mapView.getLayerManager().getLayers().add(tileRendererLayer);
+
+                // 6. Центруємо карту по Києву та задаємо зум
+                mapView.getModel().mapViewPosition.setCenter(new LatLong(50.4501, 30.5234));
+                mapView.getModel().mapViewPosition.setZoomLevel((byte) 12);
+
+                // 7. ОБГОРТКА: кладемо карту в JPanel, щоб SwingNode її прийняв
+                javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+                panel.add(mapView);
+
+                // 8. Вставляємо готовий Swing-компонент у JavaFX
+                Platform.runLater(() -> swingNode.setContent(panel));
+
+            } catch (Exception e) {
+                System.err.println("Помилка ініціалізації Mapsforge: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+    }
+
+    // Відкриває деталі і передає туди дані хабу
     private void openHubDetails(MouseEvent event, Hub hub) {
-        // Конвертуємо подію миші (MouseEvent) у подію (ActionEvent)
         ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
 
-        // Відкриваємо вікно і відловлюємо його контролер
         HubDetailsController controller = SceneSwitcher.switchToWithController(
                 actionEvent,
                 "/com/noideasolutions/svitlo/controller/HubDetails.fxml",
                 "Деталі хабу: " + hub.getTitle()
         );
 
-        // Якщо вікно успішно відкрилося, закидаємо туди наш об'єкт хабу
         if (controller != null) {
             controller.setHubData(hub);
         }
@@ -113,7 +185,6 @@ public class MainDashboardController {
 
     @FXML
     private void handleCreateHubAction(ActionEvent event) {
-        // Використовуємо SceneSwitcher для переходу
         SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/CreateHub.fxml", "Створення нового хабу");
     }
 
@@ -129,6 +200,4 @@ public class MainDashboardController {
             e.printStackTrace();
         }
     }
-
-
 }

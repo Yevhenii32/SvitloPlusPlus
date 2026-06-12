@@ -46,6 +46,25 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>17.0.2</version> </dependency>
+        <dependency>
+            <groupId>org.mapsforge</groupId>
+            <artifactId>mapsforge-map-reader</artifactId>
+            <version>0.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapsforge</groupId>
+            <artifactId>mapsforge-map-awt</artifactId>
+            <version>0.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapsforge</groupId>
+            <artifactId>mapsforge-themes</artifactId>
+            <version>0.18.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>

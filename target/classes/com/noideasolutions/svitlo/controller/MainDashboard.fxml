@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.web.WebView?>
 
 <BorderPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.MainDashboardController">
     <top>
@@ -45,13 +46,9 @@
                 </Label>
                 <ListView fx:id="hubsListView" VBox.vgrow="ALWAYS" />
             </VBox>
-            <StackPane style="-fx-background-color: #e0e0e0;">
-                <Label text="Тут буде інтерактивна карта" textFill="#888888">
-                    <font>
-                        <Font size="18.0" />
-                    </font>
-                </Label>
-            </StackPane>
+                <HBox>
+                    <StackPane fx:id="mapContainer" HBox.hgrow="ALWAYS" style="-fx-background-color: #e0e0e0;"/>
+                </HBox>
         </SplitPane>
     </center>
 </BorderPane>
