@@ -34,6 +34,7 @@ import org.mapsforge.map.awt.util.AwtUtil;
 import org.mapsforge.map.awt.view.MapView;
 import org.mapsforge.map.datastore.MapDataStore;
 import org.mapsforge.map.layer.cache.TileCache;
+import org.mapsforge.map.layer.overlay.FixedPixelCircle;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
@@ -277,10 +278,11 @@ public class MainDashboardController {
         for (Hub hub : activeHubs) {
             LatLong latLong = new LatLong(hub.getLatitude(), hub.getLongitude());
 
-            // 150 - це радіус кола в метрах
-            Circle circle = new Circle(latLong, 150, fillPaint, strokePaint);
 
-            // Додаємо коло на шар карти
+        // Замість Circle пишемо FixedPixelCircle. 10 — це радіус у пікселях на екрані
+            FixedPixelCircle circle = new FixedPixelCircle(latLong, 10, fillPaint, strokePaint);
+
+        // Додаємо на карту
             mapView.getLayerManager().getLayers().add(circle);
         }
     }
