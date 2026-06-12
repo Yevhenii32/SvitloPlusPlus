@@ -11,8 +11,8 @@ public class HubDAO {
 
     // Збереження нового хабу
     public boolean save(Hub hub) {
-        String sql = "INSERT INTO hubs (host_id, title, description, latitude, longitude, slots_total, slots_available, is_active) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at";
+        String sql = "INSERT INTO hubs (host_id, title, description, latitude, longitude, slots_total, slots_available, is_active, has_wifi, has_generator, allows_pets) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -24,11 +24,14 @@ public class HubDAO {
             stmt.setInt(6, hub.getSlotsTotal());
             stmt.setInt(7, hub.getSlotsAvailable());
             stmt.setBoolean(8, hub.isActive());
+            stmt.setBoolean(9, hub.isHasWifi());
+            stmt.setBoolean(10, hub.isHasGenerator());
+            stmt.setBoolean(11, hub.isAllowsPets());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     hub.setId(rs.getInt("id"));
-                    hub.setCreatedAt(rs.getTimestamp("created_at")); // Повертаємо timestamp, який згенерувала БД
+                    hub.setCreatedAt(rs.getTimestamp("created_at"));
                     return true;
                 }
             }
@@ -39,7 +42,7 @@ public class HubDAO {
         return false;
     }
 
-    // Отримання всіх активних хабів (наприклад, для виведення на карту або список)
+    // Отримання всіх активних хабів
     public List<Hub> findAllActive() {
         List<Hub> hubs = new ArrayList<>();
         String sql = "SELECT * FROM hubs WHERE is_active = true ORDER BY created_at DESC";
@@ -76,10 +79,10 @@ public class HubDAO {
         return null;
     }
 
-    // Оновлення хабу (наприклад, коли бронюють місця чи змінюють опис)
+    // Оновлення хабу
     public boolean update(Hub hub) {
         String sql = "UPDATE hubs SET title = ?, description = ?, latitude = ?, longitude = ?, " +
-                "slots_total = ?, slots_available = ?, is_active = ? WHERE id = ?";
+                "slots_total = ?, slots_available = ?, is_active = ?, has_wifi = ?, has_generator = ?, allows_pets = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -90,7 +93,11 @@ public class HubDAO {
             stmt.setInt(5, hub.getSlotsTotal());
             stmt.setInt(6, hub.getSlotsAvailable());
             stmt.setBoolean(7, hub.isActive());
-            stmt.setInt(8, hub.getId());
+            stmt.setBoolean(8, hub.isHasWifi());
+            stmt.setBoolean(9, hub.isHasGenerator());
+            stmt.setBoolean(10, hub.isAllowsPets());
+
+            stmt.setInt(11, hub.getId());
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -100,7 +107,7 @@ public class HubDAO {
         return false;
     }
 
-    // Отримання активних хабів, у яких є вільні місця (для відображення на карті).
+    // Отримання активних хабів, у яких є вільні місця
     public List<Hub> findAvailableHubs() {
         List<Hub> hubs = new ArrayList<>();
         String sql = "SELECT * FROM hubs WHERE is_active = true AND slots_available > 0 ORDER BY created_at DESC";
@@ -118,7 +125,7 @@ public class HubDAO {
         return hubs;
     }
 
-    // Мапінг рядка з БД в об'єкт Hub
+    // Мапінг рядка з БД в об'єкт Hub (додано читання нових полей)
     private Hub mapRowToHub(ResultSet rs) throws SQLException {
         Hub hub = new Hub();
         hub.setId(rs.getInt("id"));
@@ -131,6 +138,11 @@ public class HubDAO {
         hub.setSlotsAvailable(rs.getInt("slots_available"));
         hub.setActive(rs.getBoolean("is_active"));
         hub.setCreatedAt(rs.getTimestamp("created_at"));
+
+        // Зчитуємо наші нові колонки з бази даних
+        hub.setHasWifi(rs.getBoolean("has_wifi"));
+        hub.setHasGenerator(rs.getBoolean("has_generator"));
+        hub.setAllowsPets(rs.getBoolean("allows_pets"));
         return hub;
     }
 }

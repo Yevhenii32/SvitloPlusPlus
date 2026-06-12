@@ -16,6 +16,9 @@ public class Hub {
     private boolean isActive;
     private Timestamp createdAt;
 
+    private boolean hasWifi;
+    private boolean hasGenerator;
+    private boolean allowsPets;
 
     public Hub() {}
 
@@ -66,6 +69,15 @@ public class Hub {
 
     public int getReportCount() { return reportCount; }
     public void setReportCount(int reportCount) { this.reportCount = reportCount; }
+
+    public boolean isHasWifi() { return hasWifi; }
+    public void setHasWifi(boolean hasWifi) { this.hasWifi = hasWifi; }
+
+    public boolean isHasGenerator() { return hasGenerator; }
+    public void setHasGenerator(boolean hasGenerator) { this.hasGenerator = hasGenerator; }
+
+    public boolean isAllowsPets() { return allowsPets; }
+    public void setAllowsPets(boolean allowsPets) { this.allowsPets = allowsPets; }
 
     @Override
     public String toString() {

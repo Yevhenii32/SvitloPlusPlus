@@ -8,6 +8,7 @@ import com.noideasolutions.svitlo.util.SceneSwitcher;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Platform;
@@ -19,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ToggleButton;
@@ -30,16 +32,13 @@ import javax.swing.SwingUtilities;
 
 import org.mapsforge.core.model.LatLong;
 import org.mapsforge.map.awt.graphics.AwtGraphicFactory;
-import org.mapsforge.map.awt.util.AwtUtil;
-import org.mapsforge.map.awt.view.MapView;
-import org.mapsforge.map.datastore.MapDataStore;
 import org.mapsforge.map.layer.cache.TileCache;
 import org.mapsforge.map.layer.overlay.FixedPixelCircle;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
-
-import org.mapsforge.map.layer.overlay.Circle;
+import org.mapsforge.map.datastore.MapDataStore;
+import org.mapsforge.map.awt.view.MapView;
 import org.mapsforge.core.graphics.Paint;
 import org.mapsforge.core.graphics.Style;
 
@@ -58,14 +57,24 @@ public class MainDashboardController {
     private StackPane mapContainer;
 
     @FXML
-    private Button createHubButton; // <-- ДОДАТИ ЦЕЙ РЯДОК (імпортуй javafx.scene.control.Button)
+    private Button createHubButton;
+
+    @FXML
+    private CheckBox filterWifi;
+    @FXML
+    private CheckBox filterGenerator;
+    @FXML
+    private CheckBox filterPets;
 
     private HubService hubService = new HubService();
     private MapView mapView; // Swing-компонент карти
 
+    // КЕШ ВСІХ ХАБІВ ДЛЯ ШВИДКОЇ ФІЛЬТРАЦІЇ
+    private List<Hub> allHubs = new ArrayList<>();
+
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/UserProfile.fxml", "Мій профіль");
+        SceneSwitcher.switchTo(event, "/com/noideasolutions.svitlo/controller/UserProfile.fxml", "Мій профіль");
     }
 
     @FXML
@@ -92,62 +101,95 @@ public class MainDashboardController {
             createHubButton.setManaged(isHost);
         }
 
-        // 3. Отримуємо реальні хаби з бази даних
-        List<Hub> activeHubs = hubService.getAllActiveHubs();
+        // 3. Завантажуємо хаби з БД в наш кеш-список один раз
+        allHubs = hubService.getAllActiveHubs();
 
-        // Очищаємо список перед оновленням
-        hubsListView.getItems().clear();
+        // 4. Заповнюємо список і карту з урахуванням початкового стану фільтрів
+        updateDashboardData();
 
-        if (activeHubs.isEmpty()) {
-            hubsListView.getItems().add("Наразі немає доступних хабів зі світлом.");
-        } else {
-            for (Hub hub : activeHubs) {
-                String hubInfo = String.format("%s (Вільних місць: %d/%d)",
-                        hub.getTitle(), hub.getSlotsAvailable(), hub.getSlotsTotal());
-                hubsListView.getItems().add(hubInfo);
-            }
-        }
-
-        // 4. Обробка подвійного кліку по списку хабів
-        hubsListView.setOnMouseClicked((MouseEvent event) -> {
-            if (event.getClickCount() == 2) {
-                int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
-                if (selectedIndex >= 0 && !activeHubs.isEmpty()) {
-                    Hub selectedHub = activeHubs.get(selectedIndex);
-                    openHubDetails(event, selectedHub);
-                }
-            }
-        });
-
-        // 5. Запускаємо ініціалізацію офлайн-карти та малювання кіл хабів
+        // 5. Запускаємо ініціалізацію офлайн-карти
         initOfflineMap();
     }
 
+    /**
+     * МЕТОД ОБРОБКИ ФІЛЬТРІВ (Викликається при кліку на будь-який чекбокс)
+     */
+    @FXML
+    public void handleFilterAction() {
+        updateDashboardData();
+    }
+
+    /**
+     * Допоміжний метод, який синхронно оновлює і ListView, і карту відповідно до фільтрів
+     */
+    private void updateDashboardData() {
+        boolean needWifi = filterWifi != null && filterWifi.isSelected();
+        boolean needGenerator = filterGenerator != null && filterGenerator.isSelected();
+        boolean needPets = filterPets != null && filterPets.isSelected();
+
+        // 1. Спочатку спокійно фільтруємо дані в поточному потоці (це безпечно)
+        List<Hub> filteredHubs = new ArrayList<>();
+        List<String> textItemsToDisplay = new ArrayList<>();
+
+        for (Hub hub : allHubs) {
+            if ((needWifi && !hub.isHasWifi()) ||
+                    (needGenerator && !hub.isHasGenerator()) ||
+                    (needPets && !hub.isAllowsPets())) {
+                continue;
+            }
+
+            filteredHubs.add(hub);
+            String hubInfo = String.format("%s (Вільних місць: %d/%d)",
+                    hub.getTitle(), hub.getSlotsAvailable(), hub.getSlotsTotal());
+            textItemsToDisplay.add(hubInfo);
+        }
+
+        if (textItemsToDisplay.isEmpty()) {
+            textItemsToDisplay.add("Немає хабів із вибраними параметрами.");
+        }
+
+        // 2. Оновлення JavaFX UI загортаємо в Platform.runLater
+        Platform.runLater(() -> {
+            hubsListView.getItems().clear();
+            hubsListView.getItems().addAll(textItemsToDisplay);
+
+            // Налаштування кліків теж робимо в потоці JavaFX
+            hubsListView.setOnMouseClicked((MouseEvent event) -> {
+                if (event.getClickCount() == 2) {
+                    int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
+                    if (selectedIndex >= 0 && !filteredHubs.isEmpty()) {
+                        Hub selectedHub = filteredHubs.get(selectedIndex);
+                        openHubDetails(event, selectedHub);
+                    }
+                }
+            });
+        });
+
+        // 3. Малювання маркерів карти (це Swing-компонент, тому робимо в SwingUtilities)
+        if (mapView != null) {
+            SwingUtilities.invokeLater(() -> drawHubsOnMap(filteredHubs));
+        }
+    }
+
     private void initOfflineMap() {
-        // Створюємо міст між JavaFX та Swing
         SwingNode swingNode = new SwingNode();
         mapContainer.getChildren().add(swingNode);
 
-        // Весь код Swing МАЄ виконуватися в окремому потоці
         SwingUtilities.invokeLater(() -> {
             try {
-                // 1. Створюємо саму карту
                 mapView = new MapView();
                 mapView.getMapScaleBar().setVisible(true);
 
-                // 2. Використовуємо кеш у пам'яті (вирішує проблему з AwtUtil)
                 TileCache tileCache = new org.mapsforge.map.layer.cache.InMemoryTileCache(500);
 
-                // 3. Шукаємо наш файл
                 File mapFile = new File("ukraine.map");
                 if (!mapFile.exists()) {
                     System.err.println("ПОМИЛКА: Файл ukraine.map не знайдено в кореневій папці проєкту!");
-                    return; // Зупиняємо завантаження карти, якщо файлу немає
+                    return;
                 }
 
                 MapDataStore mapDataStore = new MapFile(mapFile);
 
-                // 4. Налаштовуємо шар рендерингу (малювання вулиць і будинків)
                 TileRendererLayer tileRendererLayer = new TileRendererLayer(
                         tileCache,
                         mapDataStore,
@@ -155,22 +197,19 @@ public class MainDashboardController {
                         AwtGraphicFactory.INSTANCE
                 );
 
-                // 5. Встановлюємо стандартну тему OSM
                 tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.OSMARENDER);
                 mapView.getLayerManager().getLayers().add(tileRendererLayer);
 
-                // 6. Центруємо карту по Києву та задаємо зум
                 mapView.getModel().mapViewPosition.setCenter(new LatLong(50.4501, 30.5234));
                 mapView.getModel().mapViewPosition.setZoomLevel((byte) 12);
 
-                // 7. ОБГОРТКА: кладемо карту в JPanel, щоб SwingNode її прийняв
                 javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
                 panel.add(mapView);
 
-                // 8. Вставляємо готовий Swing-компонент у JavaFX
                 Platform.runLater(() -> swingNode.setContent(panel));
 
-                drawHubsOnMap(hubService.getAllActiveHubs());
+                // Відмальовуємо хаби перший раз (передаємо ті, що пройшли первинний фільтр)
+                updateDashboardData();
 
             } catch (Exception e) {
                 System.err.println("Помилка ініціалізації Mapsforge: " + e.getMessage());
@@ -179,16 +218,13 @@ public class MainDashboardController {
         });
     }
 
-    // Відкриває деталі і передає туди дані хабу
     private void openHubDetails(MouseEvent event, Hub hub) {
         ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
-
         HubDetailsController controller = SceneSwitcher.switchToWithController(
                 actionEvent,
                 "/com/noideasolutions/svitlo/controller/HubDetails.fxml",
                 "Деталі хабу: " + hub.getTitle()
         );
-
         if (controller != null) {
             controller.setHubData(hub);
         }
@@ -196,45 +232,33 @@ public class MainDashboardController {
 
     @FXML
     public void handleRoleSwitch(ActionEvent event) {
-        boolean isSelected = roleToggleButton.isSelected(); // true — якщо увімкнули "Режим хоста"
+        boolean isSelected = roleToggleButton.isSelected();
         String newRole = isSelected ? "HOST" : "GUEST";
 
-        // 1. Зміна тексту на тогл-кнопці UI
         if (isSelected) {
             roleToggleButton.setText("Режим хоста");
         } else {
             roleToggleButton.setText("Режим гостя");
         }
 
-        // 2. Керування видимістю кнопки "Додати хаб"
         if (createHubButton != null) {
             createHubButton.setVisible(isSelected);
             createHubButton.setManaged(isSelected);
         }
 
-        // 3. Оновлення об'єкта в сесії та запис в PostgreSQL
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser != null) {
-            currentUser.setRole(newRole); // Оновлюємо в оперативній пам'яті сесії
-
-            // Оновлюємо текст інфо-лейблу зверху
+            currentUser.setRole(newRole);
             userInfoLabel.setText("Користувач: " + currentUser.getUsername() + " | Роль: " + currentUser.getRole());
 
-            // 4. Оновлюємо роль безпосередньо в базі даних Neon за допомогою JDBC
             String sql = "UPDATE users SET role = ? WHERE id = ?";
-
             try (java.sql.Connection conn = com.noideasolutions.svitlo.database.DatabaseConnection.getConnection();
                  java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
                 pstmt.setString(1, newRole);
                 pstmt.setInt(2, currentUser.getId());
-
-                int rowsAffected = pstmt.executeUpdate();
-                if (rowsAffected > 0) {
-                    System.out.println("Роль успішно змінено в БД на: " + newRole);
-                } else {
-                    System.err.println("Помилка: користувача з таким ID не знайдено в БД.");
-                }
+                pstmt.executeUpdate();
+                System.out.println("Роль успішно змінено в БД на: " + newRole);
 
             } catch (java.sql.SQLException e) {
                 System.err.println("Помилка під час виконання SQL-запиту оновлення ролі:");
@@ -261,29 +285,31 @@ public class MainDashboardController {
         }
     }
 
-    // Малювання хабів поверх офлайн-карти
-    private void drawHubsOnMap(List<Hub> activeHubs) {
-        // Створюємо стиль для заливки (Напівпрозорий червоний)
+    private void drawHubsOnMap(List<Hub> hubsToDraw) {
+        if (mapView == null) return;
+
+        // 1. Очищаємо всі старі колірні маркери, але ЗАЛИШАЄМО саму карту (нульовий шар)
+        while (mapView.getLayerManager().getLayers().size() > 1) {
+            mapView.getLayerManager().getLayers().remove(1);
+        }
+
         Paint fillPaint = AwtGraphicFactory.INSTANCE.createPaint();
         fillPaint.setColor(AwtGraphicFactory.INSTANCE.createColor(150, 255, 0, 0));
         fillPaint.setStyle(Style.FILL);
 
-        // Створюємо стиль для контуру (Чорний)
         Paint strokePaint = AwtGraphicFactory.INSTANCE.createPaint();
         strokePaint.setColor(AwtGraphicFactory.INSTANCE.createColor(255, 0, 0, 0));
         strokePaint.setStrokeWidth(2);
         strokePaint.setStyle(Style.STROKE);
 
-        // Проходимось по всіх хабах і малюємо коло на їх координатах
-        for (Hub hub : activeHubs) {
+        // 2. Малюємо тільки ті хаби, які пройшли поточні фільтри
+        for (Hub hub : hubsToDraw) {
             LatLong latLong = new LatLong(hub.getLatitude(), hub.getLongitude());
-
-
-        // Замість Circle пишемо FixedPixelCircle. 10 — це радіус у пікселях на екрані
             FixedPixelCircle circle = new FixedPixelCircle(latLong, 10, fillPaint, strokePaint);
-
-        // Додаємо на карту
             mapView.getLayerManager().getLayers().add(circle);
         }
+
+        // Перемальовуємо Swing-компонент
+        mapView.repaint();
     }
 }
