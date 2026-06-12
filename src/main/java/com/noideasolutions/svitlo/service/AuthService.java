@@ -45,6 +45,7 @@ public class AuthService {
     /**
      * Авторизація (Вхід у систему)
      */
+
     public User login(String username, String password) {
         System.out.println(" Спроба входу для '" + username + "'...");
 
@@ -52,6 +53,12 @@ public class AuthService {
 
         if (user == null || !BCrypt.checkpw(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException("Неправильний логін або пароль.");
+        }
+
+        // Чи не заблокований цей користувач?
+        if (user.isBlocked()) {
+            System.out.println(" Відмовлено у доступі: акаунт '" + username + "' заблоковано системою безпеки.");
+            throw new SvitloException("Ваш акаунт перманентно заблоковано за порушення правил (3 скарги).");
         }
 
         System.out.println(" Вхід успішний! Вітаємо, " + username + " (Роль: " + user.getRole() + ")");
