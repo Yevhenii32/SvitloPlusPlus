@@ -18,6 +18,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ToggleButton;
@@ -55,6 +56,9 @@ public class MainDashboardController {
     @FXML
     private StackPane mapContainer;
 
+    @FXML
+    private Button createHubButton; // <-- ДОДАТИ ЦЕЙ РЯДОК (імпортуй javafx.scene.control.Button)
+
     private HubService hubService = new HubService();
     private MapView mapView; // Swing-компонент карти
 
@@ -65,11 +69,14 @@ public class MainDashboardController {
 
     @FXML
     public void initialize() {
+        // 1. Отримуємо поточного користувача та перевіряємо, чи він є хостом
         User currentUser = UserSession.getInstance().getCurrentUser();
+        boolean isHost = currentUser != null && "HOST".equals(currentUser.getRole());
+
         if (currentUser != null) {
             userInfoLabel.setText("Користувач: " + currentUser.getUsername() + " | Роль: " + currentUser.getRole());
 
-            if ("HOST".equals(currentUser.getRole())) {
+            if (isHost) {
                 roleToggleButton.setText("Режим хоста");
                 roleToggleButton.setSelected(true);
             } else {
@@ -78,7 +85,13 @@ public class MainDashboardController {
             }
         }
 
-        // Отримуємо реальні хаби з бази даних
+        // 2. Керуємо видимістю кнопки створення хабу залежно від ролі користувача
+        if (createHubButton != null) {
+            createHubButton.setVisible(isHost);
+            createHubButton.setManaged(isHost);
+        }
+
+        // 3. Отримуємо реальні хаби з бази даних
         List<Hub> activeHubs = hubService.getAllActiveHubs();
 
         // Очищаємо список перед оновленням
@@ -94,7 +107,7 @@ public class MainDashboardController {
             }
         }
 
-        // Обробка подвійного кліку по списку
+        // 4. Обробка подвійного кліку по списку хабів
         hubsListView.setOnMouseClicked((MouseEvent event) -> {
             if (event.getClickCount() == 2) {
                 int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
@@ -105,7 +118,7 @@ public class MainDashboardController {
             }
         });
 
-        // Запускаємо ініціалізацію нашої офлайн-карти
+        // 5. Запускаємо ініціалізацію офлайн-карти та малювання кіл хабів
         initOfflineMap();
     }
 
@@ -182,10 +195,18 @@ public class MainDashboardController {
 
     @FXML
     public void handleRoleSwitch(ActionEvent event) {
-        if (roleToggleButton.isSelected()) {
+        boolean isSelected = roleToggleButton.isSelected(); // true, якщо перемкнули на Хоста
+
+        if (isSelected) {
             roleToggleButton.setText("Режим хоста");
         } else {
             roleToggleButton.setText("Режим гостя");
+        }
+
+        // Динамічно ховаємо/показуємо кнопку при натисканні
+        if (createHubButton != null) {
+            createHubButton.setVisible(isSelected);
+            createHubButton.setManaged(isSelected);
         }
     }
 

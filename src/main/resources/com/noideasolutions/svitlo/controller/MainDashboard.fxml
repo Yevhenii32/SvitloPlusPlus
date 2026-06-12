@@ -11,7 +11,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.web.WebView?>
 
 <BorderPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.MainDashboardController">
     <top>
@@ -27,7 +26,9 @@
             <Label fx:id="userInfoLabel" text="Завантаження..." />
             <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS" spacing="15.0">
                 <Button text="Мій профіль" onAction="#handleOpenProfileAction" />
-                <Button text="Додати хаб" onAction="#handleCreateHubAction" style="-fx-background-color: #2196F3; -fx-text-fill: white;" />
+
+                <Button fx:id="createHubButton" text="Додати хаб" onAction="#handleCreateHubAction" style="-fx-background-color: #2196F3; -fx-text-fill: white;" />
+
                 <ToggleButton fx:id="roleToggleButton" onAction="#handleRoleSwitch" text="Режим гостя" />
                 <Button onAction="#handleLogoutAction" text="Вийти" />
             </HBox>
@@ -46,9 +47,9 @@
                 </Label>
                 <ListView fx:id="hubsListView" VBox.vgrow="ALWAYS" />
             </VBox>
-                <HBox>
-                    <StackPane fx:id="mapContainer" HBox.hgrow="ALWAYS" style="-fx-background-color: #e0e0e0;"/>
-                </HBox>
+            <HBox>
+                <StackPane fx:id="mapContainer" HBox.hgrow="ALWAYS" style="-fx-background-color: #e0e0e0;"/>
+            </HBox>
         </SplitPane>
     </center>
 </BorderPane>
