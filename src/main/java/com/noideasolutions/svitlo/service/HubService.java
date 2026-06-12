@@ -15,9 +15,10 @@ public class HubService {
     }
 
     /**
-     * Створення нового хабу (Доступно тільки для Хостів)
+     * Створення нового хабу (Додано параметри зручностей)
      */
-    public boolean createHub(String title, String description, double latitude, double longitude, int slotsTotal) {
+    public boolean createHub(String title, String description, double latitude, double longitude, int slotsTotal,
+                             boolean hasWifi, boolean hasGenerator, boolean allowsPets) {
         // Отримуємо поточного користувача з глобальної сесії програми
         User currentUser = UserSession.getInstance().getCurrentUser();
 
@@ -39,10 +40,15 @@ public class HubService {
             return false;
         }
 
-        // Створюємо об'єкт хабу. ID хоста беремо з сесії
+        // Створюємо об'єкт хабу
         Hub newHub = new Hub(currentUser.getId(), title, description, latitude, longitude, slotsTotal);
 
-        // Зберігаємо в базу через DAO Василя
+        // Встановлюємо нові параметри
+        newHub.setHasWifi(hasWifi);
+        newHub.setHasGenerator(hasGenerator);
+        newHub.setAllowsPets(allowsPets);
+
+        // Зберігаємо в базу через DAO
         boolean isSaved = hubDAO.save(newHub);
 
         if (isSaved) {
@@ -63,7 +69,7 @@ public class HubService {
     }
 
     /**
-     * Пошук конкретного хабу за ID (знадобиться для сторінки деталей хабу)
+     * Пошук конкретного хабу за ID
      */
     public Hub getHubById(int id) {
         return hubDAO.findById(id);

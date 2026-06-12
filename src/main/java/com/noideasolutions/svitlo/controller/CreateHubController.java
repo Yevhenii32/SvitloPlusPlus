@@ -1,12 +1,11 @@
 package com.noideasolutions.svitlo.controller;
 
-import com.noideasolutions.svitlo.model.Hub;
 import com.noideasolutions.svitlo.service.HubService;
-import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.CheckBox; // ДОДАНО ІМПОРТ
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
@@ -26,6 +25,13 @@ public class CreateHubController {
 
     @FXML
     private TextField slotsField;
+
+    @FXML
+    private CheckBox wifiCheckBox;
+    @FXML
+    private CheckBox generatorCheckBox;
+    @FXML
+    private CheckBox petsCheckBox;
 
     private HubService hubService = new HubService();
 
@@ -47,23 +53,36 @@ public class CreateHubController {
             double longitude = Double.parseDouble(lonStr);
             int slots = Integer.parseInt(slotsStr);
 
-            // Беремо реальний ID користувача (хоста), який зараз залогінений
-            int currentHostId = UserSession.getInstance().getCurrentUser().getId();
+            // Зчитуємо стан чекбоксів (true або false)
+            boolean hasWifi = wifiCheckBox != null && wifiCheckBox.isSelected();
+            boolean hasGenerator = generatorCheckBox != null && generatorCheckBox.isSelected();
+            boolean allowsPets = petsCheckBox != null && petsCheckBox.isSelected();
 
-            Hub newHub = new Hub(currentHostId, title, description, latitude, longitude, slots);
+            // ТЕПЕР ПЕРЕДАЄМО ВСІ 8 ПАРАМЕТРІВ У СЕРВІС
+            boolean isCreated = hubService.createHub(
+                    title,
+                    description,
+                    latitude,
+                    longitude,
+                    slots,
+                    hasWifi,
+                    hasGenerator,
+                    allowsPets
+            );
 
-            hubService.createHub(title, description, latitude, longitude, slots);
-
-            showAlert(Alert.AlertType.INFORMATION, "Успіх", "Хаб успішно створено: " + newHub.getTitle());
-
-            // Автоматично повертаємо користувача на Головний Дашборд, щоб він побачив свій новий хаб
-            SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+            if (isCreated) {
+                showAlert(Alert.AlertType.INFORMATION, "Успіх", "Хаб успішно створено: " + title);
+                // Автоматично повертаємо користувача на Головний Дашборд
+                SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Помилка", "Не вдалося створити хаб. Перевірте логі консолі.");
+            }
 
         } catch (NumberFormatException e) {
             showAlert(Alert.AlertType.ERROR, "Помилка формату", "Перевірте правильність вводу координат та кількості місць.");
         } catch (Exception e) {
-            // Відловлюємо помилки бази даних (наприклад, якщо впаде з'єднання з Neon)
-            showAlert(Alert.AlertType.ERROR, "Помилка БД", "Не вдалося зберегти хаб: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Помилка", "Не вдалося зберегти хаб: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -77,7 +96,6 @@ public class CreateHubController {
 
     @FXML
     private void handleBackAction(ActionEvent event) {
-        // Повертаємо користувача на головну панель
         SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головна панель");
     }
 }
