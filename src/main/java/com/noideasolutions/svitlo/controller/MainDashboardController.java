@@ -37,6 +37,10 @@ import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
 
+import org.mapsforge.map.layer.overlay.Circle;
+import org.mapsforge.core.graphics.Paint;
+import org.mapsforge.core.graphics.Style;
+
 public class MainDashboardController {
 
     @FXML
@@ -123,7 +127,7 @@ public class MainDashboardController {
                 // 3. Шукаємо наш файл
                 File mapFile = new File("ukraine.map");
                 if (!mapFile.exists()) {
-                    System.err.println("ПОМИЛКА: Файл kyiv.map не знайдено в кореневій папці проєкту!");
+                    System.err.println("ПОМИЛКА: Файл ukraine.map не знайдено в кореневій папці проєкту!");
                     return; // Зупиняємо завантаження карти, якщо файлу немає
                 }
 
@@ -151,6 +155,8 @@ public class MainDashboardController {
 
                 // 8. Вставляємо готовий Swing-компонент у JavaFX
                 Platform.runLater(() -> swingNode.setContent(panel));
+
+                drawHubsOnMap(hubService.getAllActiveHubs());
 
             } catch (Exception e) {
                 System.err.println("Помилка ініціалізації Mapsforge: " + e.getMessage());
@@ -198,6 +204,31 @@ public class MainDashboardController {
             stage.setTitle("Svitlo++ - Авторизація");
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    // Малювання хабів поверх офлайн-карти
+    private void drawHubsOnMap(List<Hub> activeHubs) {
+        // Створюємо стиль для заливки (Напівпрозорий червоний)
+        Paint fillPaint = AwtGraphicFactory.INSTANCE.createPaint();
+        fillPaint.setColor(AwtGraphicFactory.INSTANCE.createColor(150, 255, 0, 0));
+        fillPaint.setStyle(Style.FILL);
+
+        // Створюємо стиль для контуру (Чорний)
+        Paint strokePaint = AwtGraphicFactory.INSTANCE.createPaint();
+        strokePaint.setColor(AwtGraphicFactory.INSTANCE.createColor(255, 0, 0, 0));
+        strokePaint.setStrokeWidth(2);
+        strokePaint.setStyle(Style.STROKE);
+
+        // Проходимось по всіх хабах і малюємо коло на їх координатах
+        for (Hub hub : activeHubs) {
+            LatLong latLong = new LatLong(hub.getLatitude(), hub.getLongitude());
+
+            // 150 - це радіус кола в метрах
+            Circle circle = new Circle(latLong, 150, fillPaint, strokePaint);
+
+            // Додаємо коло на шар карти
+            mapView.getLayerManager().getLayers().add(circle);
         }
     }
 }
