@@ -74,7 +74,7 @@ public class MainDashboardController {
 
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions.svitlo/controller/UserProfile.fxml", "Мій профіль");
+        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/UserProfile.fxml", "Мій профіль");
     }
 
     @FXML
