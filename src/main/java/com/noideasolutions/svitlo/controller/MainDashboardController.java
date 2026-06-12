@@ -195,18 +195,50 @@ public class MainDashboardController {
 
     @FXML
     public void handleRoleSwitch(ActionEvent event) {
-        boolean isSelected = roleToggleButton.isSelected(); // true, якщо перемкнули на Хоста
+        boolean isSelected = roleToggleButton.isSelected(); // true — якщо увімкнули "Режим хоста"
+        String newRole = isSelected ? "HOST" : "GUEST";
 
+        // 1. Зміна тексту на тогл-кнопці UI
         if (isSelected) {
             roleToggleButton.setText("Режим хоста");
         } else {
             roleToggleButton.setText("Режим гостя");
         }
 
-        // Динамічно ховаємо/показуємо кнопку при натисканні
+        // 2. Керування видимістю кнопки "Додати хаб"
         if (createHubButton != null) {
             createHubButton.setVisible(isSelected);
             createHubButton.setManaged(isSelected);
+        }
+
+        // 3. Оновлення об'єкта в сесії та запис в PostgreSQL
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUser.setRole(newRole); // Оновлюємо в оперативній пам'яті сесії
+
+            // Оновлюємо текст інфо-лейблу зверху
+            userInfoLabel.setText("Користувач: " + currentUser.getUsername() + " | Роль: " + currentUser.getRole());
+
+            // 4. Оновлюємо роль безпосередньо в базі даних Neon за допомогою JDBC
+            String sql = "UPDATE users SET role = ? WHERE id = ?";
+
+            try (java.sql.Connection conn = com.noideasolutions.svitlo.database.DatabaseConnection.getConnection();
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setString(1, newRole);
+                pstmt.setInt(2, currentUser.getId());
+
+                int rowsAffected = pstmt.executeUpdate();
+                if (rowsAffected > 0) {
+                    System.out.println("Роль успішно змінено в БД на: " + newRole);
+                } else {
+                    System.err.println("Помилка: користувача з таким ID не знайдено в БД.");
+                }
+
+            } catch (java.sql.SQLException e) {
+                System.err.println("Помилка під час виконання SQL-запиту оновлення ролі:");
+                e.printStackTrace();
+            }
         }
     }
 
