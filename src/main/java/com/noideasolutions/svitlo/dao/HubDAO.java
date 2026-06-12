@@ -145,4 +145,20 @@ public class HubDAO {
         hub.setAllowsPets(rs.getBoolean("allows_pets"));
         return hub;
     }
+    // Масова деактивація всіх хабів конкретного користувача (наприклад, при бані)
+    public boolean deactivateAllByHostId(int hostId) {
+        String sql = "UPDATE hubs SET is_active = false WHERE host_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, hostId);
+            // Використовуємо executeUpdate, він поверне кількість змінених рядків
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Помилка при масовій деактивації хабів хоста: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
