@@ -180,14 +180,14 @@ public class MainDashboardController {
 
             // Налаштування кліків теж робимо в потоці JavaFX
             hubsListView.setOnMouseClicked((MouseEvent event) -> {
-                if (event.getClickCount() == 2) {
-                    int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
-                    if (selectedIndex >= 0 && !filteredHubs.isEmpty()) {
-                        Hub selectedHub = filteredHubs.get(selectedIndex);
+                int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
+                if (selectedIndex >= 0 && !filteredHubs.isEmpty()) {
+                    Hub selectedHub = filteredHubs.get(selectedIndex);
 
-                        // 1. Оновлюємо глобальний фокус (Бориспіль або будь-який інший хаб)
+                    // ЛОГІКА ДЛЯ ОДНОГО КЛІКУ: ОДРАЗУ ЗУМ НА КАРТІ
+                    if (event.getClickCount() == 1) {
                         lastMapCenter = new LatLong(selectedHub.getLatitude(), selectedHub.getLongitude());
-                        lastZoomLevel = 15; // Збільшуємо масштаб
+                        lastZoomLevel = 15; // Рівень наближення для фокусу
 
                         if (mapView != null) {
                             SwingUtilities.invokeLater(() -> {
@@ -196,8 +196,11 @@ public class MainDashboardController {
                                 mapView.repaint();
                             });
                         }
+                    }
 
-                        // 2. Тепер переходимо в деталі (центр вже надійно збережено в пам'яті програми)
+                    // ЛОГІКА ДЛЯ ПОДВІЙНОГО КЛІКУ: ВІДКРИТТЯ ІНФОРМАЦІЇ
+                    if (event.getClickCount() == 2) {
+                        // Центр уже наведений першим кліком, просто відкриваємо вікно деталей
                         openHubDetails(event, selectedHub);
                     }
                 }
