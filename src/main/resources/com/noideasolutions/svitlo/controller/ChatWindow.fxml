@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.noideasolutions.svitlo.controller.ChatWindowController"
+            prefWidth="500"
+            prefHeight="400">
+
+    <top>
+        <VBox spacing="5" style="-fx-padding: 15;">
+            <Label text="Чат з хостом" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Label fx:id="chatStatusLabel" text="Повідомлення зберігаються тільки в поточній сесії"/>
+        </VBox>
+    </top>
+
+    <center>
+        <ListView fx:id="messagesListView" BorderPane.alignment="CENTER"/>
+    </center>
+
+    <bottom>
+        <HBox spacing="10" style="-fx-padding: 15;">
+            <TextField fx:id="messageField"
+                       promptText="Введіть повідомлення..."
+                       HBox.hgrow="ALWAYS"/>
+            <Button text="Відправити" onAction="#handleSendMessage"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>
