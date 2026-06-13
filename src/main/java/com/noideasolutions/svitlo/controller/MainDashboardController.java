@@ -9,7 +9,7 @@ import com.noideasolutions.svitlo.util.SceneSwitcher;
 import com.noideasolutions.svitlo.service.RadarService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
-
+import org.mapsforge.core.model.BoundingBox;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -248,6 +248,11 @@ public class MainDashboardController {
                 // Захист від крашу та виходу за межі України
                 mapView.getModel().mapViewPosition.setZoomLevelMin((byte) 6);  // Не дає віддалити так, щоб побачити сірий фон
                 mapView.getModel().mapViewPosition.setZoomLevelMax((byte) 20); // Не дає наблизити до крашу програми
+
+                // Обмеження переміщення (Bounding Box) для України
+                // Формат: BoundingBox(minLatitude, minLongitude, maxLatitude, maxLongitude)
+                BoundingBox ukraineBox = new BoundingBox(44.38, 22.13, 52.38, 40.22);
+                mapView.getModel().mapViewPosition.setMapLimit(ukraineBox);
 
                 JPanel panel = new JPanel(new BorderLayout());
                 panel.add(mapView);
