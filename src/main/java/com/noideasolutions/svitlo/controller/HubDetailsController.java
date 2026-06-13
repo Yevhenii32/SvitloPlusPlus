@@ -7,10 +7,10 @@ import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.service.BookingService;
 import com.noideasolutions.svitlo.service.ReportService;
 import com.noideasolutions.svitlo.service.UserSession;
-import com.noideasolutions.svitlo.util.SceneSwitcher;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -36,11 +36,26 @@ public class HubDetailsController {
     @FXML
     private Label slotsInfoLabel;
 
+    // НОВІ ПОЛЯ ДЛЯ ЗВ'ЯЗКУ З ОНОВЛЕНИМ FXML
+    @FXML
+    private Label coordinatesLabel;
+
+    @FXML
+    private Label wifiLabel;
+
+    @FXML
+    private Label generatorLabel;
+
+    @FXML
+    private Label petsLabel;
+
     @FXML
     private TextField bookingSlotsField;
 
     @FXML
     private Button messageHostButton;
+
+    private MainDashboardController mainDashboardController;
 
     private Hub currentHub;
 
@@ -52,8 +67,26 @@ public class HubDetailsController {
         this.currentHub = hub;
 
         titleLabel.setText(hub.getTitle());
-        descriptionLabel.setText(hub.getDescription());
+        descriptionLabel.setText(hub.getDescription() != null && !hub.getDescription().isEmpty()
+                ? hub.getDescription() : "Немає опису");
 
+        // 1. Заповнюємо координати хабу
+        if (coordinatesLabel != null) {
+            coordinatesLabel.setText(String.format("📍 Координати: %.4f, %.4f", hub.getLatitude(), hub.getLongitude()));
+        }
+
+        // 2. Формуємо інформацію про зручності (перенесено з твого showHubPopup)
+        if (wifiLabel != null) {
+            wifiLabel.setText("• Інтернет Wi-Fi: " + (hub.isHasWifi() ? "✅ Є" : "❌ Немає"));
+        }
+        if (generatorLabel != null) {
+            generatorLabel.setText("• Генератор: " + (hub.isHasGenerator() ? "✅ Є" : "❌ Немає"));
+        }
+        if (petsLabel != null) {
+            petsLabel.setText("• Можна з тваринами: " + (hub.isAllowsPets() ? "✅ Дозволено" : "❌ Заборонено"));
+        }
+
+        // 3. Інформація про власника
         User host = userDAO.findById(hub.getHostId());
         if (host != null) {
             hostInfoLabel.setText(String.format("Власник: %s (⭐ %.1f)", host.getUsername(), host.getRating()));
@@ -90,8 +123,14 @@ public class HubDetailsController {
                 return;
             }
 
+            // 1. Проводимо бронювання
             bookingService.bookSlots(currentHub, currentUser.getId(), requestedSlots);
             updateSlotsInfo();
+
+            // 2. ОНОВЛЮЄМО ДАНІ НА МАПІ ТА В ListView (на задньому плані)
+            if (mainDashboardController != null) {
+                mainDashboardController.updateDashboardData();
+            }
 
             ChatWindowController.getChatService()
                     .confirmRequestAndOpenChat(currentUser.getId(), currentHub.getHostId());
@@ -155,8 +194,18 @@ public class HubDetailsController {
             try {
                 int reporterId = UserSession.getInstance().getCurrentUser().getId();
                 reportService.submitReport(reporterId, currentHub, reason);
+
                 showAlert(Alert.AlertType.INFORMATION, "Скаргу надіслано", "Вашу скаргу зафіксовано.");
-                SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+
+                // Оновлюємо дані на головному екрані на всякий випадок
+                if (mainDashboardController != null) {
+                    mainDashboardController.updateDashboardData();
+                }
+
+                // Замість SceneSwitcher просто закриваємо це вікно, бо мапа вже відкрита ззаду
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.close();
+
             } catch (SvitloException | IllegalArgumentException e) {
                 showAlert(Alert.AlertType.ERROR, "Помилка сервера", e.getMessage());
             }
@@ -165,7 +214,9 @@ public class HubDetailsController {
 
     @FXML
     private void handleBack(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+        // Просто закриваємо це вікно, і користувач одразу бачить активну карту під ним
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.close();
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -174,5 +225,9 @@ public class HubDetailsController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public void setMainDashboardController(MainDashboardController mainDashboardController) {
+        this.mainDashboardController = mainDashboardController;
     }
 }

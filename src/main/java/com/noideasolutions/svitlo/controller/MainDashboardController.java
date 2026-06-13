@@ -147,7 +147,7 @@ public class MainDashboardController {
     /**
      * Допоміжний метод, який синхронно оновлює і ListView, і карту відповідно до фільтрів
      */
-    private void updateDashboardData() {
+    public void updateDashboardData() {
         boolean needWifi = filterWifi != null && filterWifi.isSelected();
         boolean needGenerator = filterGenerator != null && filterGenerator.isSelected();
         boolean needPets = filterPets != null && filterPets.isSelected();
@@ -184,10 +184,10 @@ public class MainDashboardController {
                 if (selectedIndex >= 0 && !filteredHubs.isEmpty()) {
                     Hub selectedHub = filteredHubs.get(selectedIndex);
 
-                    // ЛОГІКА ДЛЯ ОДНОГО КЛІКУ: ОДРАЗУ ЗУМ НА КАРТІ
+                    // 1 клік — плавний зум на карті
                     if (event.getClickCount() == 1) {
                         lastMapCenter = new LatLong(selectedHub.getLatitude(), selectedHub.getLongitude());
-                        lastZoomLevel = 15; // Рівень наближення для фокусу
+                        lastZoomLevel = 15;
 
                         if (mapView != null) {
                             SwingUtilities.invokeLater(() -> {
@@ -198,10 +198,9 @@ public class MainDashboardController {
                         }
                     }
 
-                    // ЛОГІКА ДЛЯ ПОДВІЙНОГО КЛІКУ: ВІДКРИТТЯ ІНФОРМАЦІЇ
+                    // ПОДВІЙНИЙ КЛІК — відкриваємо окреме вікно деталей поверх карти
                     if (event.getClickCount() == 2) {
-                        // Центр уже наведений першим кліком, просто відкриваємо вікно деталей
-                        openHubDetails(event, selectedHub);
+                        openHubDetailsAsNewWindow(selectedHub);
                     }
                 }
             });
@@ -261,18 +260,6 @@ public class MainDashboardController {
         });
     }
 
-    private void openHubDetails(MouseEvent event, Hub hub) {
-        ActionEvent actionEvent = new ActionEvent(event.getSource(), event.getTarget());
-        HubDetailsController controller = SceneSwitcher.switchToWithController(
-                actionEvent,
-                "/com/noideasolutions/svitlo/controller/HubDetails.fxml",
-                "Деталі хабу: " + hub.getTitle()
-        );
-        if (controller != null) {
-            controller.setHubData(hub);
-        }
-    }
-
     @FXML
     public void handleRoleSwitch(ActionEvent event) {
         boolean isSelected = roleToggleButton.isSelected();
@@ -312,7 +299,21 @@ public class MainDashboardController {
 
     @FXML
     private void handleCreateHubAction(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/CreateHub.fxml", "Створення нового хабу");
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/noideasolutions/svitlo/controller/CreateHub.fxml"));
+            Parent root = loader.load();
+
+            Stage createStage = new Stage();
+            createStage.setScene(new Scene(root));
+            createStage.setTitle("Створення нового хабу");
+
+            Stage ownerStage = (Stage) createHubButton.getScene().getWindow();
+            createStage.initOwner(ownerStage);
+
+            createStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -370,7 +371,9 @@ public class MainDashboardController {
                 @Override
                 public boolean onTap(LatLong tapLatLong, Point layerPoint, Point tapPoint) {
                     if (contains(layerPoint, tapPoint)) {
-                        Platform.runLater(() -> showHubPopup(hub));
+                        // Клік відбувається в Swing-потоці карти Mapsforge,
+                        // тому запуск JavaFX-вікна ОБОВ'ЯЗКОВО загортаємо в Platform.runLater
+                        Platform.runLater(() -> openHubDetailsAsNewWindow(hub));
                         return true;
                     }
                     return false;
@@ -431,6 +434,7 @@ public class MainDashboardController {
                     "Пошук хабів зупинено.");
         }
     }
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -439,30 +443,38 @@ public class MainDashboardController {
         alert.showAndWait();
     }
 
-    private void showHubPopup(Hub hub) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Інформація про хаб");
-        alert.setHeaderText(hub.getTitle());
+    private void openHubDetailsAsNewWindow(Hub hub) {
+        try {
+            // 1. Завантажуємо FXML вікна деталей/бронювання
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/noideasolutions/svitlo/controller/HubDetails.fxml"));
+            Parent root = loader.load();
 
-        String wifi = hub.isHasWifi() ? "✅ Є" : "❌ Немає";
-        String generator = hub.isHasGenerator() ? "✅ Є" : "❌ Немає";
-        String pets = hub.isAllowsPets() ? "✅ Дозволено" : "❌ Заборонено";
+            // 2. Передаємо дані хабу в його контролер
+            HubDetailsController controller = loader.getController();
+            if (controller != null) {
+                controller.setHubData(hub);
 
-        String content = String.format(
-                "📍 Координати: %.4f, %.4f\n" +
-                        "👥 Вільних місць: %d з %d\n" +
-                        "📝 Опис: %s\n\n" +
-                        "💡 Зручності:\n" +
-                        "• Інтернет Wi-Fi: %s\n" +
-                        "• Генератор: %s\n" +
-                        "• Можна з тваринами: %s",
-                hub.getLatitude(), hub.getLongitude(),
-                hub.getSlotsAvailable(), hub.getSlotsTotal(),
-                (hub.getDescription() != null && !hub.getDescription().isEmpty() ? hub.getDescription() : "Немає опису"),
-                wifi, generator, pets
-        );
+                // Передаємо посилання на цей дашборд, щоб вікно деталей могло сказати "оновися", коли користувач забронює місце
+                controller.setMainDashboardController(this);
+            }
 
-        alert.setContentText(content);
-        alert.showAndWait();
+            // 3. Створюємо і відкриваємо НОВЕ вікно поверх старого
+            Stage detailsStage = new Stage();
+            detailsStage.setScene(new Scene(root));
+            detailsStage.setTitle("Бронювання хабу: " + hub.getTitle());
+
+            // Встановлюємо власником головне вікно (щоб воно було на фоні)
+            if (hubsListView != null && hubsListView.getScene() != null) {
+                Stage ownerStage = (Stage) hubsListView.getScene().getWindow();
+                detailsStage.initOwner(ownerStage);
+            }
+
+            // Показуємо вікно. Карта ззаду залишається видимою і не закривається!
+            detailsStage.show();
+
+        } catch (IOException e) {
+            System.err.println("Не вдалося відкрити вікно деталей хабу:");
+            e.printStackTrace();
+        }
     }
 }
