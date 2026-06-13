@@ -1,5 +1,6 @@
 package com.noideasolutions.svitlo.controller;
 
+import com.noideasolutions.svitlo.database.DatabaseConnection;
 import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.model.Hub;
@@ -8,8 +9,14 @@ import com.noideasolutions.svitlo.util.SceneSwitcher;
 import com.noideasolutions.svitlo.service.RadarService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,20 +37,21 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
+import org.mapsforge.core.graphics.Bitmap;
 import org.mapsforge.core.model.LatLong;
+import org.mapsforge.map.awt.graphics.AwtBitmap;
 import org.mapsforge.map.awt.graphics.AwtGraphicFactory;
+import org.mapsforge.map.layer.cache.InMemoryTileCache;
 import org.mapsforge.map.layer.cache.TileCache;
-import org.mapsforge.map.layer.overlay.FixedPixelCircle;
+import org.mapsforge.map.layer.overlay.Marker;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
 import org.mapsforge.map.datastore.MapDataStore;
 import org.mapsforge.map.awt.view.MapView;
-import org.mapsforge.core.graphics.Paint;
-import org.mapsforge.core.graphics.Style;
-
+import org.mapsforge.core.model.Point;
 
 public class MainDashboardController {
 
@@ -84,6 +92,10 @@ public class MainDashboardController {
 
     // КЕШ ВСІХ ХАБІВ ДЛЯ ШВИДКОЇ ФІЛЬТРАЦІЇ
     private List<Hub> allHubs = new ArrayList<>();
+
+    // Статична змінна, щоб зберігати фокус карти між екранами
+    private static LatLong lastMapCenter = new LatLong(50.4501, 30.5234);
+    private static byte lastZoomLevel = 12;
 
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
@@ -172,6 +184,20 @@ public class MainDashboardController {
                     int selectedIndex = hubsListView.getSelectionModel().getSelectedIndex();
                     if (selectedIndex >= 0 && !filteredHubs.isEmpty()) {
                         Hub selectedHub = filteredHubs.get(selectedIndex);
+
+                        // 1. Оновлюємо глобальний фокус (Бориспіль або будь-який інший хаб)
+                        lastMapCenter = new LatLong(selectedHub.getLatitude(), selectedHub.getLongitude());
+                        lastZoomLevel = 15; // Збільшуємо масштаб
+
+                        if (mapView != null) {
+                            SwingUtilities.invokeLater(() -> {
+                                mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
+                                mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
+                                mapView.repaint();
+                            });
+                        }
+
+                        // 2. Тепер переходимо в деталі (центр вже надійно збережено в пам'яті програми)
                         openHubDetails(event, selectedHub);
                     }
                 }
@@ -193,7 +219,7 @@ public class MainDashboardController {
                 mapView = new MapView();
                 mapView.getMapScaleBar().setVisible(true);
 
-                TileCache tileCache = new org.mapsforge.map.layer.cache.InMemoryTileCache(500);
+                TileCache tileCache = new InMemoryTileCache(500);
 
                 File mapFile = new File("ukraine.map");
                 if (!mapFile.exists()) {
@@ -213,10 +239,11 @@ public class MainDashboardController {
                 tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.OSMARENDER);
                 mapView.getLayerManager().getLayers().add(tileRendererLayer);
 
-                mapView.getModel().mapViewPosition.setCenter(new LatLong(50.4501, 30.5234));
-                mapView.getModel().mapViewPosition.setZoomLevel((byte) 12);
+                // НАШІ ЗМІННІ
+                mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
+                mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
 
-                javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+                JPanel panel = new JPanel(new BorderLayout());
                 panel.add(mapView);
 
                 Platform.runLater(() -> swingNode.setContent(panel));
@@ -265,15 +292,15 @@ public class MainDashboardController {
             userInfoLabel.setText("Користувач: " + currentUser.getUsername() + " | Роль: " + currentUser.getRole());
 
             String sql = "UPDATE users SET role = ? WHERE id = ?";
-            try (java.sql.Connection conn = com.noideasolutions.svitlo.database.DatabaseConnection.getConnection();
-                 java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
                 pstmt.setString(1, newRole);
                 pstmt.setInt(2, currentUser.getId());
                 pstmt.executeUpdate();
                 System.out.println("Роль успішно змінено в БД на: " + newRole);
 
-            } catch (java.sql.SQLException e) {
+            } catch (SQLException e) {
                 System.err.println("Помилка під час виконання SQL-запиту оновлення ролі:");
                 e.printStackTrace();
             }
@@ -301,30 +328,58 @@ public class MainDashboardController {
     private void drawHubsOnMap(List<Hub> hubsToDraw) {
         if (mapView == null) return;
 
-        // 1. Очищаємо всі старі колірні маркери, але ЗАЛИШАЄМО саму карту (нульовий шар)
+        // 1. Очищаємо всі старі маркери (шари після основного шару карти)
         while (mapView.getLayerManager().getLayers().size() > 1) {
             mapView.getLayerManager().getLayers().remove(1);
         }
 
-        Paint fillPaint = AwtGraphicFactory.INSTANCE.createPaint();
-        fillPaint.setColor(AwtGraphicFactory.INSTANCE.createColor(150, 255, 0, 0));
-        fillPaint.setStyle(Style.FILL);
+        // 2. Створюємо вигляд нашого маркера через стандартний шар AWT
+        int radius = 10;
 
-        Paint strokePaint = AwtGraphicFactory.INSTANCE.createPaint();
-        strokePaint.setColor(AwtGraphicFactory.INSTANCE.createColor(255, 0, 0, 0));
-        strokePaint.setStrokeWidth(2);
-        strokePaint.setStyle(Style.STROKE);
+        // Створюємо стандартне AWT зображення в пам'яті
+        BufferedImage awtImage = new BufferedImage(
+                radius * 2, radius * 2, BufferedImage.TYPE_INT_ARGB
+        );
 
-        // 2. Малюємо тільки ті хаби, які пройшли поточні фільтри
+        Graphics2D g2d = awtImage.createGraphics();
+        // Вмикаємо згладжування, щоб кружечки були красивими й не піксельними
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Малюємо червоне коло (напівпрозоре: новий колір з альфа-каналом)
+        g2d.setColor(new Color(255, 0, 0, 150));
+        g2d.fillOval(0, 0, radius * 2 - 1, radius * 2 - 1);
+
+        // Малюємо чорний контур
+        g2d.setColor(Color.BLACK);
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawOval(0, 0, radius * 2 - 1, radius * 2 - 1);
+        g2d.dispose();
+
+        // Загортаємо наше AWT зображення в обгортку Mapsforge Bitmap
+        Bitmap bitmap = new AwtBitmap(awtImage);
+
+        // 3. Додаємо маркери на карту
         for (Hub hub : hubsToDraw) {
             LatLong latLong = new LatLong(hub.getLatitude(), hub.getLongitude());
-            FixedPixelCircle circle = new FixedPixelCircle(latLong, 10, fillPaint, strokePaint);
-            mapView.getLayerManager().getLayers().add(circle);
+
+            // Створюємо клікабельний маркер
+            Marker marker = new Marker(latLong, bitmap, 0, 0) {
+                @Override
+                public boolean onTap(LatLong tapLatLong, Point layerPoint, Point tapPoint) {
+                    if (contains(layerPoint, tapPoint)) {
+                        Platform.runLater(() -> showHubPopup(hub));
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
+            mapView.getLayerManager().getLayers().add(marker);
         }
 
-        // Перемальовуємо Swing-компонент
         mapView.repaint();
     }
+
     @FXML
     private void handleRadarToggle(ActionEvent event) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -378,6 +433,33 @@ public class MainDashboardController {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showHubPopup(Hub hub) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Інформація про хаб");
+        alert.setHeaderText(hub.getTitle());
+
+        String wifi = hub.isHasWifi() ? "✅ Є" : "❌ Немає";
+        String generator = hub.isHasGenerator() ? "✅ Є" : "❌ Немає";
+        String pets = hub.isAllowsPets() ? "✅ Дозволено" : "❌ Заборонено";
+
+        String content = String.format(
+                "📍 Координати: %.4f, %.4f\n" +
+                        "👥 Вільних місць: %d з %d\n" +
+                        "📝 Опис: %s\n\n" +
+                        "💡 Зручності:\n" +
+                        "• Інтернет Wi-Fi: %s\n" +
+                        "• Генератор: %s\n" +
+                        "• Можна з тваринами: %s",
+                hub.getLatitude(), hub.getLongitude(),
+                hub.getSlotsAvailable(), hub.getSlotsTotal(),
+                (hub.getDescription() != null && !hub.getDescription().isEmpty() ? hub.getDescription() : "Немає опису"),
+                wifi, generator, pets
+        );
+
+        alert.setContentText(content);
         alert.showAndWait();
     }
 }
