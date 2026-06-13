@@ -9,7 +9,7 @@ import com.noideasolutions.svitlo.util.SceneSwitcher;
 import com.noideasolutions.svitlo.service.RadarService;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
-
+import org.mapsforge.core.model.BoundingBox;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -245,6 +245,15 @@ public class MainDashboardController {
                 mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
                 mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
 
+                // Захист від крашу та виходу за межі України
+                mapView.getModel().mapViewPosition.setZoomLevelMin((byte) 6);  // Не дає віддалити так, щоб побачити сірий фон
+                mapView.getModel().mapViewPosition.setZoomLevelMax((byte) 20); // Не дає наблизити до крашу програми
+
+                // Обмеження переміщення (Bounding Box) для України
+                // Формат: BoundingBox(minLatitude, minLongitude, maxLatitude, maxLongitude)
+                BoundingBox ukraineBox = new BoundingBox(44.38, 22.13, 52.38, 40.22);
+                mapView.getModel().mapViewPosition.setMapLimit(ukraineBox);
+
                 JPanel panel = new JPanel(new BorderLayout());
                 panel.add(mapView);
 
@@ -371,9 +380,20 @@ public class MainDashboardController {
                 @Override
                 public boolean onTap(LatLong tapLatLong, Point layerPoint, Point tapPoint) {
                     if (contains(layerPoint, tapPoint)) {
-                        // Клік відбувається в Swing-потоці карти Mapsforge,
-                        // тому запуск JavaFX-вікна ОБОВ'ЯЗКОВО загортаємо в Platform.runLater
+                        // 1. ПЛАВНИЙ ЗУМ НА КАРТІ (так само, як при кліку на список)
+                        // Оскільки ми в потоці карти, SwingUtilities викликаємо одразу
+                        SwingUtilities.invokeLater(() -> {
+                            lastMapCenter = new LatLong(hub.getLatitude(), hub.getLongitude());
+                            lastZoomLevel = 15; // Рівень зуму, як у списку
+
+                            mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
+                            mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
+                            mapView.repaint();
+                        });
+
+                        // 2. ВІДКРИТТЯ ВІКНА ДЕТАЛЕЙ (загортаємо в JavaFX потік)
                         Platform.runLater(() -> openHubDetailsAsNewWindow(hub));
+
                         return true;
                     }
                     return false;
