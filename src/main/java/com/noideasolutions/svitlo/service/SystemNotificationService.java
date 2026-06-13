@@ -1,8 +1,7 @@
 package com.noideasolutions.svitlo.service;
 
-
-
 import com.noideasolutions.svitlo.model.Hub;
+import javafx.scene.control.Alert;
 
 public class SystemNotificationService {
 
@@ -12,6 +11,15 @@ public class SystemNotificationService {
                         ": знайдено онлайн-хаб '" + hub.getTitle() +
                         "' на відстані " + String.format("%.2f", distanceKm) + " км."
         );
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Радар знайшов хаб");
+        alert.setHeaderText("Знайдено відповідний хаб");
+        alert.setContentText(
+                "Хаб: " + hub.getTitle() +
+                        "\nВідстань: " + String.format("%.2f", distanceKm) + " км."
+        );
+        alert.show();
     }
 
     public void notifyWaiting(int guestId) {

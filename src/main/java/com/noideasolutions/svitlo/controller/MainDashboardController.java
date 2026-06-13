@@ -5,7 +5,9 @@ import com.noideasolutions.svitlo.service.UserSession;
 import com.noideasolutions.svitlo.model.Hub;
 import com.noideasolutions.svitlo.service.HubService;
 import com.noideasolutions.svitlo.util.SceneSwitcher;
-
+import com.noideasolutions.svitlo.service.RadarService;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,13 +44,23 @@ import org.mapsforge.map.awt.view.MapView;
 import org.mapsforge.core.graphics.Paint;
 import org.mapsforge.core.graphics.Style;
 
+
 public class MainDashboardController {
 
     @FXML
     private Label userInfoLabel;
+    @FXML
+    private TextField radarRadiusField;
 
     @FXML
+    private ToggleButton radarToggleButton;
+    @FXML
     private ToggleButton roleToggleButton;
+    @FXML
+    private TextField radarLatitudeField;
+
+    @FXML
+    private TextField radarLongitudeField;
 
     @FXML
     private ListView<String> hubsListView;
@@ -67,6 +79,7 @@ public class MainDashboardController {
     private CheckBox filterPets;
 
     private HubService hubService = new HubService();
+    private final RadarService radarService = new RadarService();
     private MapView mapView; // Swing-компонент карти
 
     // КЕШ ВСІХ ХАБІВ ДЛЯ ШВИДКОЇ ФІЛЬТРАЦІЇ
@@ -311,5 +324,60 @@ public class MainDashboardController {
 
         // Перемальовуємо Swing-компонент
         mapView.repaint();
+    }
+    @FXML
+    private void handleRadarToggle(ActionEvent event) {
+        User currentUser = UserSession.getInstance().getCurrentUser();
+
+        if (currentUser == null) {
+            showAlert(Alert.AlertType.ERROR, "Помилка", "Користувач не авторизований.");
+            radarToggleButton.setSelected(false);
+            return;
+        }
+
+        if (radarToggleButton.isSelected()) {
+            try {
+                double radiusKm = Double.parseDouble(radarRadiusField.getText());
+
+                if (radiusKm <= 0) {
+                    showAlert(Alert.AlertType.WARNING, "Увага", "Радіус має бути більше 0.");
+                    radarToggleButton.setSelected(false);
+                    return;
+                }
+
+                double guestLatitude = Double.parseDouble(radarLatitudeField.getText());
+                double guestLongitude = Double.parseDouble(radarLongitudeField.getText());
+                radarService.startSearch(
+                        currentUser.getId(),
+                        guestLatitude,
+                        guestLongitude,
+                        radiusKm
+                );
+
+                radarToggleButton.setText("Вимкнути радар");
+
+                showAlert(Alert.AlertType.INFORMATION,
+                        "Радар увімкнено",
+                        "Пошук хабів запущено в радіусі " + radiusKm + " км.");
+
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.ERROR, "Помилка", "Введіть коректні  координати та радіус.");
+                radarToggleButton.setSelected(false);
+            }
+        } else {
+            radarService.stopSearch();
+            radarToggleButton.setText("Увімкнути радар");
+
+            showAlert(Alert.AlertType.INFORMATION,
+                    "Радар вимкнено",
+                    "Пошук хабів зупинено.");
+        }
+    }
+    private void showAlert(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
