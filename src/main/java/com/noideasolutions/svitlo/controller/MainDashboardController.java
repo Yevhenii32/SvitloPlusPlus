@@ -245,6 +245,10 @@ public class MainDashboardController {
                 mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
                 mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
 
+                // Захист від крашу та виходу за межі України
+                mapView.getModel().mapViewPosition.setZoomLevelMin((byte) 6);  // Не дає віддалити так, щоб побачити сірий фон
+                mapView.getModel().mapViewPosition.setZoomLevelMax((byte) 20); // Не дає наблизити до крашу програми
+
                 JPanel panel = new JPanel(new BorderLayout());
                 panel.add(mapView);
 
