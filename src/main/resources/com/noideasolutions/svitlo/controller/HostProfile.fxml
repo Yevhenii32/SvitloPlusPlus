@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="15.0" prefWidth="400.0" prefHeight="500.0"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.noideasolutions.svitlo.controller.HostProfileController">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+    </padding>
+
+    <Label fx:id="hostNameLabel" text="Завантаження імені..." style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+
+    <Label fx:id="hostRatingLabel" text="⭐ 0.0" style="-fx-font-size: 16px; -fx-text-fill: #FF9800; -fx-font-weight: bold;"/>
+
+    <Separator prefWidth="200.0"/>
+
+    <Label text="Всі хаби цього власника:" style="-fx-font-weight: bold;"/>
+    <ListView fx:id="hostHubsListView" VBox.vgrow="ALWAYS" />
+
+    <Separator prefWidth="200.0"/>
+
+    <HBox alignment="CENTER" spacing="15.0">
+        <Button text="Чат з хостом"
+                onAction="#handleChatAction"
+                style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+
+        <Button text="Подати скаргу"
+                onAction="#handleReportAction"
+                style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <Button text="Закрити" onAction="#handleCloseAction"/>
+</VBox>

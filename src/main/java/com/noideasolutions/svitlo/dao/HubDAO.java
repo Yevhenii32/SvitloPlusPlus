@@ -161,4 +161,27 @@ public class HubDAO {
         }
         return false;
     }
+
+    // Отримання всіх активних хабів конкретного хоста
+    public List<Hub> findByHostId(int hostId) {
+        List<Hub> hubs = new ArrayList<>();
+        String sql = "SELECT * FROM hubs WHERE host_id = ? AND is_active = true ORDER BY created_at DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, hostId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // Використовуємо готовий мапер
+                    hubs.add(mapRowToHub(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Помилка при отриманні хабів хоста за ID: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return hubs;
+    }
 }

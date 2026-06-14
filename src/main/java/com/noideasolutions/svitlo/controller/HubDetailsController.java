@@ -20,6 +20,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Modality;
+
 import java.util.Optional;
 
 public class HubDetailsController {
@@ -75,7 +78,7 @@ public class HubDetailsController {
             coordinatesLabel.setText(String.format("📍 Координати: %.4f, %.4f", hub.getLatitude(), hub.getLongitude()));
         }
 
-        // 2. Формуємо інформацію про зручності (перенесено з твого showHubPopup)
+        // 2. Формуємо інформацію про зручності (перенесено з showHubPopup)
         if (wifiLabel != null) {
             wifiLabel.setText("• Інтернет Wi-Fi: " + (hub.isHasWifi() ? "✅ Є" : "❌ Немає"));
         }
@@ -217,6 +220,41 @@ public class HubDetailsController {
         // Просто закриваємо це вікно, і користувач одразу бачить активну карту під ним
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.close();
+    }
+
+    @FXML
+    private void handleOpenHostProfileAction(MouseEvent event) {
+        if (currentHub == null) return;
+
+        try {
+            // 1. Завантажуємо FXML нового вікна профілю хоста
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/com/noideasolutions/svitlo/controller/HostProfile.fxml"
+            ));
+            Parent root = loader.load();
+
+            // 2. Дістаємо його контролер та передаємо туди ID власника хабу
+            HostProfileController controller = loader.getController();
+            if (controller != null) {
+                controller.setHostId(currentHub.getHostId()); // Передаємо hostId з моделі Hub
+            }
+
+            // 3. Створюємо нову сцену та stage
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Профіль хоста");
+
+            // Робимо вікно модальним, щоб користувач фокусувався на профілі
+            Stage ownerStage = (Stage) hostInfoLabel.getScene().getWindow();
+            stage.initOwner(ownerStage);
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            stage.show();
+
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Помилка", "Не вдалося відкрити профіль хоста: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {

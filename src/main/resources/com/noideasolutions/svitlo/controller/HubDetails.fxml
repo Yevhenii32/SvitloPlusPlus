@@ -22,7 +22,8 @@
            style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
     <Label fx:id="hostInfoLabel"
-           style="-fx-font-weight: bold; -fx-text-fill: #FF9800; -fx-font-size: 14px;"/>
+           onMouseClicked="#handleOpenHostProfileAction"
+           style="-fx-font-weight: bold; -fx-text-fill: #FF9800; -fx-font-size: 14px; -fx-cursor: hand; -fx-underline: true;"/>
 
     <Label fx:id="descriptionLabel"
            wrapText="true"/>
