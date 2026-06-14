@@ -319,8 +319,22 @@ public class MainDashboardController {
             Stage ownerStage = (Stage) createHubButton.getScene().getWindow();
             createStage.initOwner(ownerStage);
 
-            createStage.show();
+            // 1. КРИТИЧНА ЗМІНА: замість show() використовуємо showAndWait()
+            // Цей метод зупиняє виконання коду дашборду на цьому рядку.
+            // Дашборд буде просто чекати, поки користувач заповнить поля і закриє вікно створення.
+            createStage.showAndWait();
+
+            // 2. ЦЕЙ КОД ВИКОНАЄТЬСЯ АВТОМАТИЧНО ОДРАЗУ ПІСЛЯ ЗАКРИТТЯ ВІКНА СТВОРЕННЯ
+            System.out.println("[DEBUG] Вікно створення хабу закрилося. Оновлюємо карту в реальному часі...");
+
+            // Оновлюємо кеш хабів найсвіжішими даними з бази (де вже є новий хаб зі статусом true)
+            allHubs = hubService.getAllActiveHubs();
+
+            // Перемальовуємо список та маркери на карті
+            updateDashboardData();
+
         } catch (IOException e) {
+            System.err.println("Помилка при відкритті вікна створення хабу:");
             e.printStackTrace();
         }
     }
