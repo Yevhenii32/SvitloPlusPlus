@@ -380,9 +380,20 @@ public class MainDashboardController {
                 @Override
                 public boolean onTap(LatLong tapLatLong, Point layerPoint, Point tapPoint) {
                     if (contains(layerPoint, tapPoint)) {
-                        // Клік відбувається в Swing-потоці карти Mapsforge,
-                        // тому запуск JavaFX-вікна ОБОВ'ЯЗКОВО загортаємо в Platform.runLater
+                        // 1. ПЛАВНИЙ ЗУМ НА КАРТІ (так само, як при кліку на список)
+                        // Оскільки ми в потоці карти, SwingUtilities викликаємо одразу
+                        SwingUtilities.invokeLater(() -> {
+                            lastMapCenter = new LatLong(hub.getLatitude(), hub.getLongitude());
+                            lastZoomLevel = 15; // Рівень зуму, як у списку
+
+                            mapView.getModel().mapViewPosition.setCenter(lastMapCenter);
+                            mapView.getModel().mapViewPosition.setZoomLevel(lastZoomLevel);
+                            mapView.repaint();
+                        });
+
+                        // 2. ВІДКРИТТЯ ВІКНА ДЕТАЛЕЙ (загортаємо в JavaFX потік)
                         Platform.runLater(() -> openHubDetailsAsNewWindow(hub));
+
                         return true;
                     }
                     return false;
