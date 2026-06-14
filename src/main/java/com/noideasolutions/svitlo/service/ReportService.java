@@ -82,4 +82,62 @@ public class ReportService {
             }
         }
     }
+
+    /**
+     * Обробляє скаргу на користувача (хоста) безпосередньо з його профілю.
+     */
+    public void submitUserReport(int reporterId, int reportedUserId, String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Причина скарги не може бути порожньою.");
+        }
+
+        if (reporterId == reportedUserId) {
+            throw new SvitloException("Ви не можете надіслати скаргу на самого себе.");
+        }
+
+        // 1. Захист від спаму скаргами (на рівні профілю)
+        if (reportDAO.hasUserAlreadyReportedUser(reporterId, reportedUserId)) {
+            throw new SvitloException("Ви вже надсилали скаргу на цього користувача.");
+        }
+
+        // 2. Створюємо об'єкт скарги
+        // Оскільки скарга йде на користувача, в полі hub_id передаємо 0 або NULL (залежно від конструктора Report)
+        Report newReport = new Report(0, reporterId, 0, reason);
+
+
+        boolean saved = reportDAO.saveUserReport(reporterId, reportedUserId, reason);
+
+        if (!saved) {
+            throw new SvitloException("Помилка сервера: не вдалося зберегти скаргу на користувача.");
+        }
+
+        // 3. Шукаємо порушника в БД і нараховуємо йому штрафний бал
+        User host = userDAO.findById(reportedUserId);
+
+        if (host != null) {
+            int currentComplaints = host.getComplaintsCount();
+            host.setComplaintsCount(currentComplaints + 1);
+
+            // Перевіряємо автоматичний бан за накопичені скарги
+            if (host.getComplaintsCount() >= MAX_REPORTS_THRESHOLD) {
+                host.setBlocked(true); // Бан!
+
+                // Автоматично прибираємо всі його хаби з карти
+                boolean hubsDeactivated = hubDAO.deactivateAllByHostId(host.getId());
+                if (hubsDeactivated) {
+                    System.out.println(" СИСТЕМА БЕЗПЕКИ: Всі хаби заблокованого хоста прибрано.");
+                }
+
+                System.out.println(" СИСТЕМА БЕЗПЕКИ: Користувача '" + host.getUsername() + "' АВТОМАТИЧНО ЗАБЛОКОВАНО через скаргу на профіль!");
+            }
+
+            // Зберігаємо оновленого юзера (нові скарги або бан) у БД
+            boolean hostUpdated = userDAO.update(host);
+            if (!hostUpdated) {
+                throw new SvitloException("Помилка сервера: не вдалося оновити статус користувача.");
+            }
+        } else {
+            throw new SvitloException("Помилка: користувача, на якого ви скаржитесь, не знайдено в базі даних.");
+        }
+    }
 }
