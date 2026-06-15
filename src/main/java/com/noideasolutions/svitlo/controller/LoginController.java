@@ -96,7 +96,10 @@ public class LoginController {
                 try {
                     Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/MainDashboard.fxml"));
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(new Scene(root, 520, 760));
+                    stage.setScene(new Scene(root, 1200, 800));
+
+                    stage.centerOnScreen();
+
                     stage.setTitle("Svitlo++ - Головна панель");
                 } catch (IOException e) {
                     e.printStackTrace();

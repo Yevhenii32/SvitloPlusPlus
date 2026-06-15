@@ -373,6 +373,9 @@ public class MainDashboardController {
             Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/Login.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root, 480, 680));
+
+            stage.centerOnScreen();
+
             stage.setTitle("Svitlo++ - Авторизація");
         } catch (IOException e) {
             e.printStackTrace();
