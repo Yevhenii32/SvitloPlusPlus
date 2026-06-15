@@ -5,7 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
+import javafx.scene.image.Image;
 import java.io.IOException;
 
 public class App extends Application {
@@ -20,7 +20,11 @@ public class App extends Application {
 
         primaryStage.setTitle("Svitlo++ - Авторизація");
         primaryStage.setScene(scene);
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/com/noideasolutions/svitlo/images/logo.png")));
         primaryStage.show();
+
+
+
     }
 
     public static void main(String[] args) {
