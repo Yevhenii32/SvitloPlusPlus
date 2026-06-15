@@ -47,7 +47,7 @@
                     onAction="#handleOpenProfileAction"
                     styleClass="btn-header-ghost"/>
             <Button fx:id="createHubButton"
-                    text="＋  Додати хаб"
+                    text="+   Додати хаб"
                     onAction="#handleCreateHubAction"
                     styleClass="btn-header-primary"/>
             <ToggleButton fx:id="roleToggleButton"
