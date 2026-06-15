@@ -1,41 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="15.0" prefWidth="400.0" prefHeight="500.0"
-      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+<VBox alignment="TOP_CENTER" spacing="0.0"
+      prefWidth="480.0" prefHeight="550.0"
+      styleClass="root-container"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.noideasolutions.svitlo.controller.HostProfileController">
 
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
 
-    <Label fx:id="hostNameLabel" text="Завантаження імені..." style="-fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <VBox alignment="CENTER" styleClass="profile-hero">
+        <padding><Insets top="28.0" bottom="24.0" left="32.0" right="32.0"/></padding>
 
-    <Label fx:id="hostRatingLabel" text="⭐ 0.0" style="-fx-font-size: 16px; -fx-text-fill: #FF9800; -fx-font-weight: bold;"/>
+        <Label text="👤" styleClass="profile-avatar"/>
 
-    <Separator prefWidth="200.0"/>
+        <Label fx:id="hostNameLabel" text="Завантаження імені..." styleClass="brand-title" wrapText="true">
+            <font><Font name="System Bold" size="22.0"/></font>
+            <VBox.margin><Insets top="8.0"/></VBox.margin>
+        </Label>
 
-    <Label text="Всі хаби цього власника:" style="-fx-font-weight: bold;"/>
-    <ListView fx:id="hostHubsListView" VBox.vgrow="ALWAYS" />
+        <Label fx:id="hostRatingLabel" text="⭐ 0.0" styleClass="hub-host-link">
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+        </Label>
+    </VBox>
 
-    <Separator prefWidth="200.0"/>
+    <VBox spacing="14.0" VBox.vgrow="ALWAYS" styleClass="form-body">
+        <padding><Insets top="20.0" bottom="20.0" left="28.0" right="28.0"/></padding>
 
-    <HBox alignment="CENTER" spacing="15.0">
-        <Button text="Чат з хостом"
-                onAction="#handleChatAction"
-                style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+        <VBox styleClass="sidebar-card" spacing="10.0" VBox.vgrow="ALWAYS">
+            <Label text="🏠 Всі хаби цього власника:" styleClass="field-label"/>
+            <ListView fx:id="hostHubsListView" VBox.vgrow="ALWAYS" styleClass="radar-list-view"/>
+        </VBox>
 
-        <Button text="Подати скаргу"
-                onAction="#handleReportAction"
-                style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"/>
-    </HBox>
+        <HBox spacing="10.0" alignment="CENTER">
+            <Button text="✉  Чат з хостом"
+                    onAction="#handleChatAction"
+                    styleClass="btn-hub-book"
+                    prefHeight="44.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
 
-    <Button text="Закрити" onAction="#handleCloseAction"/>
+            <Button text="⚑  Подати скаргу"
+                    onAction="#handleReportAction"
+                    styleClass="btn-hub-report"
+                    prefHeight="44.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+
+        <Button text="← Закрити"
+                onAction="#handleCloseAction"
+                styleClass="btn-back"
+                maxWidth="Infinity"
+                prefHeight="42.0"/>
+    </VBox>
 </VBox>
