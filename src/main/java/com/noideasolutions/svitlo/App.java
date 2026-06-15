@@ -21,7 +21,6 @@ public class App extends Application {
         primaryStage.setTitle("Svitlo++ - Авторизація");
         primaryStage.setScene(scene);
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/com/noideasolutions/svitlo/images/logo.png")));
-
         primaryStage.show();
 
 
