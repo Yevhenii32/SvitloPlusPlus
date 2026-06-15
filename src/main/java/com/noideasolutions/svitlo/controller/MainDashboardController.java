@@ -101,7 +101,28 @@ public class MainDashboardController {
 
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/UserProfile.fxml", "Мій профіль");
+        try {
+            // 1. Завантажуємо FXML профілю користувача
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/noideasolutions/svitlo/controller/UserProfile.fxml"));
+            Parent root = loader.load();
+
+            // 2. Створюємо НОВЕ вікно (Stage) для профілю
+            Stage profileStage = new Stage();
+            profileStage.setScene(new Scene(root));
+            profileStage.setTitle("Мій профіль");
+
+            // 3. Встановлюємо поточне головне вікно як власника (щоб мапа залишалася на фоні)
+            Stage ownerStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            profileStage.initOwner(ownerStage);
+
+            // Показуємо вікно профілю. Головне вікно ззаду НЕ пропадає!
+            profileStage.show();
+
+        } catch (IOException e) {
+            System.err.println("Не вдалося відкрити вікно профілю користувача:");
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Помилка", "Не вдалося відкрити профіль: " + e.getMessage());
+        }
     }
 
     @FXML

@@ -9,10 +9,12 @@ import com.noideasolutions.svitlo.exception.SvitloException;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.stage.Stage;
 
 public class UserProfileController {
 
@@ -100,7 +102,10 @@ public class UserProfileController {
 
     @FXML
     private void handleBackAction(ActionEvent event) {
-        SceneSwitcher.switchTo(event, "/com/noideasolutions/svitlo/controller/MainDashboard.fxml", "Головне меню");
+        // Отримуємо поточне вікно профілю та просто закриваємо його.
+        // Користувач одразу побачить головне вікно з мапою, яке весь цей час було ззаду.
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.close();
     }
 
     private void showAlert(Alert.AlertType type, String title, String content) {
