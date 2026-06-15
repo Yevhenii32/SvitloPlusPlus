@@ -16,7 +16,7 @@ public class App extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/Login.fxml"));
 
         // Встановлюємо розміри вікна
-        Scene scene = new Scene(root, 400, 350);
+        Scene scene = new Scene(root, 520, 650);
 
         primaryStage.setTitle("Svitlo++ - Авторизація");
         primaryStage.setScene(scene);

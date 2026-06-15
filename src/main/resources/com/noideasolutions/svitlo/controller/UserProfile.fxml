@@ -1,44 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" spacing="15.0" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.UserProfileController">
-    <padding>
-        <Insets bottom="20.0" left="30.0" right="30.0" top="20.0"/>
-    </padding>
+<VBox alignment="TOP_CENTER" spacing="0.0"
+      prefHeight="560.0" prefWidth="560.0"
+      styleClass="root-container"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.noideasolutions.svitlo.controller.UserProfileController">
 
-    <Label text="Мій Профіль">
-        <font>
-            <Font name="System Bold" size="24.0" />
-        </font>
-    </Label>
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
 
-    <HBox spacing="20.0" alignment="CENTER_LEFT" style="-fx-background-color: #f4f4f4; -fx-padding: 15px; -fx-border-color: #dcdcdc; -fx-border-radius: 5px; -fx-background-radius: 5px;">
-        <VBox spacing="5.0">
-            <Label fx:id="usernameLabel" style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Користувач: "/>
-            <Label fx:id="roleLabel" text="Роль: " textFill="#555555"/>
-        </VBox>
-        <VBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-            <Label text="Мій баланс:" textFill="#555555"/>
-            <Label fx:id="bonusPointsLabel" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #FF9800;" text="0 балів"/>
-        </VBox>
-    </HBox>
+    <!-- ХЕДЕР -->
+    <VBox alignment="CENTER" styleClass="profile-hero">
+        <padding><Insets top="32.0" bottom="28.0" left="40.0" right="40.0"/></padding>
 
-    <Label text="Обмін балів на винагороди:" style="-fx-font-size: 16px; -fx-font-weight: bold;">
-        <VBox.margin>
-            <Insets top="10.0" />
-        </VBox.margin>
-    </Label>
+        <!-- Аватар-заглушка -->
+        <Label text="👤" styleClass="profile-avatar"/>
 
-    <ListView fx:id="rewardsListView" VBox.vgrow="ALWAYS" />
+        <Label text="Мій Профіль" styleClass="brand-title">
+            <font><Font name="System Bold" size="26.0"/></font>
+            <VBox.margin><Insets top="8.0"/></VBox.margin>
+        </Label>
+        <Label fx:id="usernameLabel" text="Користувач" styleClass="label-muted">
+            <font><Font size="14.0"/></font>
+        </Label>
+    </VBox>
 
-    <HBox alignment="CENTER" spacing="20.0">
-        <Button text="Назад до меню" onAction="#handleBackAction" prefWidth="120.0" prefHeight="35.0"/>
-        <Button text="Обміняти бали" onAction="#handleRedeemAction" style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" prefWidth="150.0" prefHeight="35.0"/>
-    </HBox>
+    <!-- ТІЛО -->
+    <VBox spacing="16.0" VBox.vgrow="ALWAYS" styleClass="form-body">
+        <padding><Insets top="24.0" bottom="24.0" left="32.0" right="32.0"/></padding>
+
+        <!-- КАРТКА ІНФО -->
+        <HBox styleClass="profile-info-card" alignment="CENTER_LEFT" spacing="12.0">
+            <padding><Insets top="16.0" bottom="16.0" left="20.0" right="20.0"/></padding>
+
+            <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                <Label fx:id="roleLabel" text="Роль: —" styleClass="profile-role-label"/>
+            </VBox>
+
+            <VBox alignment="CENTER_RIGHT" spacing="2.0">
+                <Label text="Мій баланс" styleClass="label-muted"/>
+                <Label fx:id="bonusPointsLabel" text="0 балів" styleClass="profile-balance"/>
+            </VBox>
+        </HBox>
+
+        <!-- ЗАГОЛОВОК СПИСКУ -->
+        <Label text="🎁  Обмін балів на винагороди" styleClass="sidebar-card-title">
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+        </Label>
+
+        <!-- СПИСОК НАГОРОД -->
+        <ListView fx:id="rewardsListView" VBox.vgrow="ALWAYS" styleClass="hub-list"/>
+
+        <!-- КНОПКИ -->
+        <HBox spacing="12.0" alignment="CENTER">
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+            <Button text="← Назад до меню"
+                    onAction="#handleBackAction"
+                    styleClass="btn-back"
+                    prefHeight="46.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="🎁  Обміняти бали"
+                    onAction="#handleRedeemAction"
+                    styleClass="btn-login"
+                    prefHeight="46.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+
+    </VBox>
 </VBox>

@@ -19,7 +19,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.application.Platform;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
@@ -36,6 +35,9 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.mapsforge.map.rendertheme.ExternalRenderTheme;
+import java.io.File;
+import java.net.URL;
 
 import javax.swing.*;
 
@@ -48,10 +50,10 @@ import org.mapsforge.map.layer.cache.TileCache;
 import org.mapsforge.map.layer.overlay.Marker;
 import org.mapsforge.map.layer.renderer.TileRendererLayer;
 import org.mapsforge.map.reader.MapFile;
-import org.mapsforge.map.rendertheme.InternalRenderTheme;
 import org.mapsforge.map.datastore.MapDataStore;
 import org.mapsforge.map.awt.view.MapView;
 import org.mapsforge.core.model.Point;
+import org.mapsforge.map.rendertheme.InternalRenderTheme;
 
 public class MainDashboardController {
 
@@ -238,7 +240,11 @@ public class MainDashboardController {
                         AwtGraphicFactory.INSTANCE
                 );
 
+                File themeFile = new File("themes/default.xml");
+
+                // 🔥 Повертаємо вбудований стиль карти
                 tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.OSMARENDER);
+
                 mapView.getLayerManager().getLayers().add(tileRendererLayer);
 
                 // НАШІ ЗМІННІ
@@ -319,8 +325,22 @@ public class MainDashboardController {
             Stage ownerStage = (Stage) createHubButton.getScene().getWindow();
             createStage.initOwner(ownerStage);
 
-            createStage.show();
+            // 1. КРИТИЧНА ЗМІНА: замість show() використовуємо showAndWait()
+            // Цей метод зупиняє виконання коду дашборду на цьому рядку.
+            // Дашборд буде просто чекати, поки користувач заповнить поля і закриє вікно створення.
+            createStage.showAndWait();
+
+            // 2. ЦЕЙ КОД ВИКОНАЄТЬСЯ АВТОМАТИЧНО ОДРАЗУ ПІСЛЯ ЗАКРИТТЯ ВІКНА СТВОРЕННЯ
+            System.out.println("[DEBUG] Вікно створення хабу закрилося. Оновлюємо карту в реальному часі...");
+
+            // Оновлюємо кеш хабів найсвіжішими даними з бази (де вже є новий хаб зі статусом true)
+            allHubs = hubService.getAllActiveHubs();
+
+            // Перемальовуємо список та маркери на карті
+            updateDashboardData();
+
         } catch (IOException e) {
+            System.err.println("Помилка при відкритті вікна створення хабу:");
             e.printStackTrace();
         }
     }
@@ -331,7 +351,7 @@ public class MainDashboardController {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/com/noideasolutions/svitlo/controller/Login.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.setScene(new Scene(root, 400, 350));
+            stage.setScene(new Scene(root, 480, 680));
             stage.setTitle("Svitlo++ - Авторизація");
         } catch (IOException e) {
             e.printStackTrace();

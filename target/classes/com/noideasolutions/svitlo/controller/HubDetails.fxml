@@ -1,69 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER"
-      spacing="15.0"
+<VBox alignment="TOP_CENTER" spacing="0.0"
+      prefWidth="480.0"
+      styleClass="root-container"
       xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.noideasolutions.svitlo.controller.HubDetailsController">
 
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
 
-    <Label fx:id="titleLabel"
-           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <!-- ХЕДЕР -->
+    <VBox alignment="CENTER" styleClass="profile-hero">
+        <padding><Insets top="28.0" bottom="24.0" left="32.0" right="32.0"/></padding>
 
-    <Label fx:id="hostInfoLabel"
-           style="-fx-font-weight: bold; -fx-text-fill: #FF9800; -fx-font-size: 14px;"/>
+        <Label text="🏠" styleClass="profile-avatar"/>
 
-    <Label fx:id="descriptionLabel"
-           wrapText="true"/>
+        <Label fx:id="titleLabel" styleClass="brand-title" wrapText="true">
+            <font><Font name="System Bold" size="22.0"/></font>
+            <VBox.margin><Insets top="8.0"/></VBox.margin>
+        </Label>
 
-    <Separator prefWidth="200.0" />
-
-    <Label fx:id="coordinatesLabel" style="-fx-font-weight: bold;"/>
-
-    <VBox alignment="CENTER_LEFT" spacing="5.0" style="-fx-padding: 0 0 0 20;">
-        <Label fx:id="wifiLabel"/>
-        <Label fx:id="generatorLabel"/>
-        <Label fx:id="petsLabel"/>
+        <!-- Власник — клікабельний -->
+        <Label fx:id="hostInfoLabel"
+               onMouseClicked="#handleOpenHostProfileAction"
+               styleClass="hub-host-link">
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+        </Label>
     </VBox>
 
-    <Separator prefWidth="200.0" />
+    <!-- ТІЛО -->
+    <VBox spacing="14.0" VBox.vgrow="ALWAYS" styleClass="form-body">
+        <padding><Insets top="20.0" bottom="20.0" left="28.0" right="28.0"/></padding>
 
-    <Label fx:id="slotsInfoLabel"
-           style="-fx-font-style: italic;"/>
+        <!-- Опис -->
+        <Label fx:id="descriptionLabel" wrapText="true" styleClass="hub-description"/>
 
-    <HBox alignment="CENTER" spacing="10.0">
-        <Label text="Кількість місць для бронювання:"/>
-        <TextField fx:id="bookingSlotsField" prefWidth="50.0"/>
-    </HBox>
+        <!-- КАРТКА ДЕТАЛЕЙ -->
+        <VBox styleClass="sidebar-card" spacing="10.0">
+            <Label fx:id="coordinatesLabel" styleClass="hub-detail-coord"/>
 
-    <HBox alignment="CENTER" spacing="15.0">
-        <Button text="Забронювати"
-                onAction="#handleBook"
-                style="-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;"/>
+            <VBox spacing="6.0">
+                <Label fx:id="wifiLabel"      styleClass="hub-detail-item"/>
+                <Label fx:id="generatorLabel" styleClass="hub-detail-item"/>
+                <Label fx:id="petsLabel"      styleClass="hub-detail-item"/>
+            </VBox>
+        </VBox>
 
-        <Button fx:id="messageHostButton"
-                text="Написати хосту"
-                disable="true"
-                onAction="#handleOpenChat"
-                style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+        <!-- КАРТКА БРОНЮВАННЯ -->
+        <VBox styleClass="sidebar-card" spacing="12.0">
+            <Label fx:id="slotsInfoLabel" styleClass="hub-slots-info"/>
 
-        <Button text="Поскаржитись"
-                onAction="#handleReport"
-                style="-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;"/>
-    </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                <Label text="Кількість місць:" styleClass="field-label"/>
+                <TextField fx:id="bookingSlotsField"
+                           prefWidth="64.0"
+                           styleClass="radar-field"/>
+            </HBox>
+        </VBox>
 
-    <Button text="Назад"
-            onAction="#handleBack"/>
+        <!-- КНОПКИ ДІЙ -->
+        <HBox spacing="10.0" alignment="CENTER">
+            <Button text="✔  Забронювати"
+                    onAction="#handleBook"
+                    styleClass="btn-hub-book"
+                    prefHeight="44.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button fx:id="messageHostButton"
+                    text="✉  Написати хосту"
+                    onAction="#handleOpenChat"
+                    disable="true"
+                    styleClass="btn-hub-chat"
+                    prefHeight="44.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="⚑  Поскаржитись"
+                    onAction="#handleReport"
+                    styleClass="btn-hub-report"
+                    prefHeight="44.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
 
+        <!-- НАЗАД -->
+        <Button text="← Назад"
+                onAction="#handleBack"
+                styleClass="btn-back"
+                maxWidth="Infinity"
+                prefHeight="42.0"/>
+
+    </VBox>
 </VBox>

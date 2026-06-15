@@ -1,52 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.RegistrationController">
-    <padding>
-        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0"/>
-    </padding>
+<VBox alignment="TOP_CENTER"
+      minWidth="480.0" minHeight="720.0"
+      prefWidth="480.0" prefHeight="720.0"
+      styleClass="root-container"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.noideasolutions.svitlo.controller.RegistrationController">
 
-    <Label text="Svitlo++">
-        <font>
-            <Font name="System Bold" size="24.0" />
-        </font>
-    </Label>
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
 
-    <Label text="Реєстрація нового користувача" textFill="#555555" />
+    <!-- Хвилястий хедер -->
+    <StackPane styleClass="hero-header" prefHeight="230.0" minHeight="230.0">
+        <VBox alignment="CENTER" spacing="10.0">
+            <ImageView fx:id="logoImageView"
+                       fitWidth="100.0" fitHeight="100.0"
+                       pickOnBounds="true" preserveRatio="true"
+                       styleClass="logo-shadow"/>
+            <Label text="Svitlo++" styleClass="brand-title">
+                <font><Font name="System Bold" size="36.0"/></font>
+            </Label>
+            <Label text="Реєстрація нового користувача" styleClass="label-muted">
+                <font><Font size="14.0"/></font>
+            </Label>
+        </VBox>
+    </StackPane>
 
-    <VBox spacing="5.0">
-        <Label text="Логін:"/>
-        <TextField fx:id="usernameField" promptText="Придумайте логін..." />
+    <!-- Форма -->
+    <VBox spacing="16.0" fillWidth="true" styleClass="form-body">
+        <padding>
+            <Insets top="28.0" bottom="28.0" left="40.0" right="40.0"/>
+        </padding>
+
+        <!-- Логін -->
+        <VBox spacing="6.0">
+            <Label text="Логін" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="14.0"/></padding>
+                <Label text="👤" styleClass="input-icon-fa"/>
+                <TextField fx:id="usernameField"
+                           promptText="Введіть логін"
+                           styleClass="clean-field"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+
+        <!-- Пароль -->
+        <VBox spacing="6.0">
+            <Label text="Пароль" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="10.0"/></padding>
+                <Label text="🔒" styleClass="input-icon-fa"/>
+                <StackPane HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="passwordField"
+                                   promptText="Придумайте пароль"
+                                   styleClass="clean-field"/>
+                    <TextField fx:id="passwordVisibleField"
+                               promptText="Придумайте пароль"
+                               styleClass="clean-field"
+                               visible="false"/>
+                </StackPane>
+                <Button fx:id="togglePasswordButton"
+                        text="👁" styleClass="eye-button"
+                        onAction="#handleTogglePassword"/>
+            </HBox>
+        </VBox>
+
+        <!-- Повторіть пароль -->
+        <VBox spacing="6.0">
+            <Label text="Повторіть пароль" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="10.0"/></padding>
+                <Label text="🔒" styleClass="input-icon-fa"/>
+                <StackPane HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="confirmPasswordField"
+                                   promptText="Введіть пароль ще раз"
+                                   styleClass="clean-field"/>
+                    <TextField fx:id="confirmPasswordVisibleField"
+                               promptText="Введіть пароль ще раз"
+                               styleClass="clean-field"
+                               visible="false"/>
+                </StackPane>
+                <Button fx:id="toggleConfirmPasswordButton"
+                        text="👁" styleClass="eye-button"
+                        onAction="#handleToggleConfirmPassword"/>
+            </HBox>
+        </VBox>
+
+        <!-- Роль -->
+        <VBox spacing="6.0">
+            <Label text="Оберіть роль" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="14.0"/></padding>
+                <Label text="🛡" styleClass="input-icon-fa"/>
+                <ComboBox fx:id="roleComboBox"
+                          promptText="Оберіть роль..."
+                          styleClass="clean-combo"
+                          HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            </HBox>
+        </VBox>
+
+        <!-- Статус / помилка -->
+        <Label fx:id="statusLabel" styleClass="error-label" wrapText="true"/>
+
+        <!-- Кнопки -->
+        <HBox spacing="12.0" alignment="CENTER">
+            <VBox.margin><Insets top="6.0"/></VBox.margin>
+            <Button text="← Назад"
+                    onAction="#handleBackToLoginAction"
+                    styleClass="btn-back"
+                    prefHeight="48.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="Зареєструватися"
+                    onAction="#handleRegisterAction"
+                    styleClass="btn-login"
+                    prefHeight="48.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+
     </VBox>
-
-    <VBox spacing="5.0">
-        <Label text="Пароль:"/>
-        <PasswordField fx:id="passwordField" promptText="Придумайте пароль..." />
-    </VBox>
-
-    <VBox spacing="5.0">
-        <Label text="Повторіть пароль:"/>
-        <PasswordField fx:id="confirmPasswordField" promptText="Введіть пароль ще раз..." />
-    </VBox>
-
-    <VBox spacing="5.0">
-        <Label text="Оберіть роль:"/>
-        <ComboBox fx:id="roleComboBox" promptText="Оберіть роль..." prefWidth="200" />
-    </VBox>
-
-    <Label fx:id="statusLabel" textFill="RED" />
-
-    <HBox alignment="CENTER" spacing="15.0">
-        <Button onAction="#handleBackToLoginAction" text="Назад" prefWidth="100" prefHeight="30" />
-        <Button onAction="#handleRegisterAction" text="Зареєструватися" prefWidth="130" prefHeight="30" />
-    </HBox>
 </VBox>

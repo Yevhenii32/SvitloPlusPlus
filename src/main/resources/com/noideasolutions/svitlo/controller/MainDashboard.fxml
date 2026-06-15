@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
@@ -12,77 +13,110 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.MainDashboardController">
+<BorderPane prefHeight="600.0" prefWidth="900.0"
+            styleClass="dashboard-root"
+            xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.noideasolutions.svitlo.controller.MainDashboardController">
+
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
+
+    <!-- ===== ХЕДЕР ===== -->
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="20.0" style="-fx-background-color: #f4f4f4; -fx-border-color: #dcdcdc; -fx-border-width: 0 0 1 0;">
+        <HBox alignment="CENTER_LEFT" spacing="16.0" styleClass="dashboard-header">
             <padding>
-                <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+                <Insets bottom="12.0" left="24.0" right="24.0" top="12.0"/>
             </padding>
-            <Label text="Svitlo++">
-                <font>
-                    <Font name="System Bold" size="20.0" />
-                </font>
-            </Label>
-            <Label fx:id="userInfoLabel" text="Завантаження..." />
-            <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS" spacing="15.0">
-                <Button text="Мій профіль" onAction="#handleOpenProfileAction" />
-                <Button fx:id="createHubButton" text="Додати хаб" onAction="#handleCreateHubAction" style="-fx-background-color: #2196F3; -fx-text-fill: white;" />
-                <ToggleButton fx:id="roleToggleButton" onAction="#handleRoleSwitch" text="Режим гостя" />
-                <Button onAction="#handleLogoutAction" text="Вийти" />
-            </HBox>
+
+            <!-- Логотип + назва -->
+            <Label text="Svitlo++" styleClass="header-brand"/>
+
+            <!-- Інфо про користувача -->
+            <Label fx:id="userInfoLabel" text="Завантаження..." styleClass="header-user-info"/>
+
+            <!-- Розпірка -->
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <!-- Кнопки праворуч -->
+            <Button text="👤  Мій профіль"
+                    onAction="#handleOpenProfileAction"
+                    styleClass="btn-header-ghost"/>
+            <Button fx:id="createHubButton"
+                    text="＋  Додати хаб"
+                    onAction="#handleCreateHubAction"
+                    styleClass="btn-header-primary"/>
+            <ToggleButton fx:id="roleToggleButton"
+                          text="Режим гостя"
+                          onAction="#handleRoleSwitch"
+                          styleClass="btn-header-toggle"/>
+            <Button text="Вийти"
+                    onAction="#handleLogoutAction"
+                    styleClass="btn-header-danger"/>
         </HBox>
     </top>
 
+    <!-- ===== ЦЕНТР ===== -->
     <center>
-        <SplitPane dividerPositions="0.3">
-            <VBox spacing="10.0">
-                <padding>
-                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                </padding>
+        <SplitPane dividerPositions="0.32" styleClass="dashboard-split">
 
-                <Label text="Доступні хаби">
-                    <font>
-                        <Font name="System Bold" size="16.0" />
-                    </font>
+            <!-- ЛІВА ПАНЕЛЬ -->
+            <VBox spacing="0.0" styleClass="sidebar">
+
+                <!-- Заголовок сайдбару -->
+                <Label text="Доступні хаби" styleClass="sidebar-title">
+                    <VBox.margin><Insets top="20.0" left="20.0" bottom="12.0"/></VBox.margin>
                 </Label>
 
-                <VBox spacing="5.0" style="-fx-background-color: #eee; -fx-padding: 10; -fx-background-radius: 5;">
-                    <Label text="Фільтри:" style="-fx-font-weight: bold;" />
-                    <CheckBox fx:id="filterWifi" text="Є Wi-Fi" onAction="#handleFilterAction" />
-                    <CheckBox fx:id="filterGenerator" text="Є Генератор" onAction="#handleFilterAction" />
-                    <CheckBox fx:id="filterPets" text="З тваринами" onAction="#handleFilterAction" />
+                <!-- БЛОК ФІЛЬТРІВ -->
+                <VBox spacing="10.0" styleClass="sidebar-card">
+                    <VBox.margin><Insets left="12.0" right="12.0" bottom="10.0"/></VBox.margin>
+                    <Label text="🔍  Фільтри" styleClass="sidebar-card-title"/>
+                    <CheckBox fx:id="filterWifi"      text="Є Wi-Fi"      onAction="#handleFilterAction" styleClass="sidebar-checkbox"/>
+                    <CheckBox fx:id="filterGenerator" text="Є Генератор"  onAction="#handleFilterAction" styleClass="sidebar-checkbox"/>
+                    <CheckBox fx:id="filterPets"      text="З тваринами"  onAction="#handleFilterAction" styleClass="sidebar-checkbox"/>
                 </VBox>
 
-                <VBox spacing="5.0" style="-fx-background-color: #eef6ff; -fx-padding: 10; -fx-background-radius: 5;">
-                    <Label text="Радар:" style="-fx-font-weight: bold;" />
+                <!-- БЛОК РАДАРУ -->
+                <VBox spacing="10.0" styleClass="sidebar-card">
+                    <VBox.margin><Insets left="12.0" right="12.0" bottom="10.0"/></VBox.margin>
+                    <Label text="📡  Радар" styleClass="sidebar-card-title"/>
 
-                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <Label text="Широта:" />
-                        <TextField fx:id="radarLatitudeField" text="50.4501" prefWidth="80.0" />
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <Label text="Широта:" styleClass="radar-label"/>
+                        <TextField fx:id="radarLatitudeField" text="50.4501"
+                                   styleClass="radar-field" prefWidth="90.0"/>
                     </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <Label text="Довгота:" />
-                        <TextField fx:id="radarLongitudeField" text="30.5234" prefWidth="80.0" />
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <Label text="Довгота:" styleClass="radar-label"/>
+                        <TextField fx:id="radarLongitudeField" text="30.5234"
+                                   styleClass="radar-field" prefWidth="90.0"/>
                     </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                        <Label text="Радіус, км:" />
-                        <TextField fx:id="radarRadiusField" text="1" prefWidth="60.0" />
+                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                        <Label text="Радіус, км:" styleClass="radar-label"/>
+                        <TextField fx:id="radarRadiusField" text="1"
+                                   styleClass="radar-field" prefWidth="60.0"/>
                         <ToggleButton fx:id="radarToggleButton"
-                                      text="Увімкнути радар"
-                                      onAction="#handleRadarToggle" />
+                                      text="Увімкнути"
+                                      onAction="#handleRadarToggle"
+                                      styleClass="btn-radar-toggle"/>
                     </HBox>
                 </VBox>
 
-                <ListView fx:id="hubsListView" VBox.vgrow="ALWAYS" />
+                <!-- СПИСОК ХАБІВ -->
+                <ListView fx:id="hubsListView" styleClass="hub-list" VBox.vgrow="ALWAYS">
+                    <VBox.margin><Insets left="12.0" right="12.0" bottom="12.0"/></VBox.margin>
+                </ListView>
+
             </VBox>
 
-            <HBox>
-                <StackPane fx:id="mapContainer" HBox.hgrow="ALWAYS" style="-fx-background-color: #e0e0e0;"/>
-            </HBox>
+            <!-- ПРАВА ПАНЕЛЬ — КАРТА -->
+            <StackPane fx:id="mapContainer" styleClass="map-container"/>
+
         </SplitPane>
     </center>
 </BorderPane>

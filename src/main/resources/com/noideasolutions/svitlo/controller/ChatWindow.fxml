@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
@@ -7,29 +8,54 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
+            xmlns="http://javafx.com/javafx/17"
             fx:controller="com.noideasolutions.svitlo.controller.ChatWindowController"
-            prefWidth="500"
-            prefHeight="400">
+            prefWidth="500" prefHeight="440"
+            styleClass="root-container">
 
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
+
+    <!-- ХЕДЕР -->
     <top>
-        <VBox spacing="5" style="-fx-padding: 15;">
-            <Label text="Чат з хостом" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-            <Label fx:id="chatStatusLabel" text="Повідомлення зберігаються тільки в поточній сесії"/>
+        <VBox styleClass="chat-header" spacing="4.0">
+            <padding><Insets top="16.0" bottom="16.0" left="24.0" right="24.0"/></padding>
+            <Label text="💬  Чат з хостом" styleClass="brand-title">
+                <font><Font name="System Bold" size="18.0"/></font>
+            </Label>
+            <Label fx:id="chatStatusLabel"
+                   text="Повідомлення зберігаються тільки в поточній сесії"
+                   styleClass="label-muted"/>
         </VBox>
     </top>
 
+    <!-- СПИСОК ПОВІДОМЛЕНЬ -->
     <center>
-        <ListView fx:id="messagesListView" BorderPane.alignment="CENTER"/>
+        <ListView fx:id="messagesListView" styleClass="chat-list">
+            <BorderPane.margin><Insets top="0" bottom="0" left="16.0" right="16.0"/></BorderPane.margin>
+        </ListView>
     </center>
 
+    <!-- ПОЛЕ ВВОДУ -->
     <bottom>
-        <HBox spacing="10" style="-fx-padding: 15;">
-            <TextField fx:id="messageField"
-                       promptText="Введіть повідомлення..."
-                       HBox.hgrow="ALWAYS"/>
-            <Button text="Відправити" onAction="#handleSendMessage"/>
+        <HBox spacing="10.0" styleClass="chat-input-bar" alignment="CENTER">
+            <padding><Insets top="14.0" bottom="14.0" left="16.0" right="16.0"/></padding>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="0" HBox.hgrow="ALWAYS">
+                <padding><Insets left="14.0" right="8.0"/></padding>
+                <TextField fx:id="messageField"
+                           promptText="Введіть повідомлення..."
+                           styleClass="clean-field"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+            <Button text="➤  Надіслати"
+                    onAction="#handleSendMessage"
+                    styleClass="btn-login"
+                    prefHeight="44.0"
+                    prefWidth="130.0"/>
         </HBox>
     </bottom>
 

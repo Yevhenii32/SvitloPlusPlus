@@ -1,41 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-
 <?import javafx.scene.control.CheckBox?>
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.CreateHubController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-    </padding>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-    <HBox alignment="CENTER_LEFT" spacing="15.0" prefWidth="400.0">
-        <Button text="← Назад" onAction="#handleBackAction" style="-fx-background-color: #6c757d; -fx-text-fill: white; -fx-cursor: hand;" />
-        <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-            <Label text="Створення нового хабу" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+<VBox alignment="TOP_CENTER" spacing="0.0"
+      prefWidth="480.0" prefHeight="580.0"
+      styleClass="root-container"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.noideasolutions.svitlo.controller.CreateHubController">
+
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
+
+    <!-- ХЕДЕР -->
+    <VBox styleClass="chat-header" alignment="CENTER">
+        <padding><Insets top="20.0" bottom="20.0" left="24.0" right="24.0"/></padding>
+        <Label text="🏠  Створення нового хабу" styleClass="brand-title">
+            <font><Font name="System Bold" size="20.0"/></font>
+        </Label>
+        <Label text="Заповніть інформацію про ваш хаб" styleClass="label-muted">
+            <font><Font size="13.0"/></font>
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+        </Label>
+    </VBox>
+
+    <!-- ФОРМА -->
+    <VBox spacing="14.0" VBox.vgrow="ALWAYS" styleClass="form-body">
+        <padding><Insets top="22.0" bottom="22.0" left="28.0" right="28.0"/></padding>
+
+        <!-- Назва -->
+        <VBox spacing="6.0">
+            <Label text="Назва хабу" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets left="14.0" right="14.0"/></padding>
+                <Label text="🏷" styleClass="input-icon-fa"/>
+                <TextField fx:id="titleField"
+                           promptText="Введіть назву хабу"
+                           styleClass="clean-field"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+
+        <!-- Опис -->
+        <VBox spacing="6.0">
+            <Label text="Опис хабу" styleClass="field-label"/>
+            <TextArea fx:id="descriptionArea"
+                      promptText="Розкажіть про ваш хаб..."
+                      prefRowCount="3"
+                      styleClass="clean-textarea"
+                      wrapText="true"/>
+        </VBox>
+
+        <!-- Координати -->
+        <VBox spacing="6.0">
+            <Label text="Координати" styleClass="field-label"/>
+            <HBox spacing="10.0">
+                <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="8.0"
+                      HBox.hgrow="ALWAYS">
+                    <padding><Insets left="12.0" right="12.0"/></padding>
+                    <Label text="📍" styleClass="input-icon-fa"/>
+                    <TextField fx:id="latitudeField"
+                               promptText="Широта (50.4501)"
+                               styleClass="clean-field"
+                               HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="8.0"
+                      HBox.hgrow="ALWAYS">
+                    <padding><Insets left="12.0" right="12.0"/></padding>
+                    <Label text="📍" styleClass="input-icon-fa"/>
+                    <TextField fx:id="longitudeField"
+                               promptText="Довгота (30.5234)"
+                               styleClass="clean-field"
+                               HBox.hgrow="ALWAYS"/>
+                </HBox>
+            </HBox>
+        </VBox>
+
+        <!-- Кількість місць -->
+        <VBox spacing="6.0">
+            <Label text="Кількість місць" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets left="14.0" right="14.0"/></padding>
+                <Label text="👥" styleClass="input-icon-fa"/>
+                <TextField fx:id="slotsField"
+                           promptText="Скільки гостей може прийняти хаб"
+                           styleClass="clean-field"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+
+        <!-- Зручності -->
+        <VBox spacing="8.0" styleClass="sidebar-card">
+            <Label text="⚙  Зручності" styleClass="sidebar-card-title"/>
+            <HBox spacing="20.0" alignment="CENTER_LEFT">
+                <CheckBox fx:id="wifiCheckBox"      text="📶  Wi-Fi"            styleClass="sidebar-checkbox"/>
+                <CheckBox fx:id="generatorCheckBox" text="⚡  Генератор"        styleClass="sidebar-checkbox"/>
+                <CheckBox fx:id="petsCheckBox"      text="🐾  З тваринами"      styleClass="sidebar-checkbox"/>
+            </HBox>
+        </VBox>
+
+        <!-- КНОПКИ -->
+        <HBox spacing="12.0" alignment="CENTER">
+            <VBox.margin><Insets top="4.0"/></VBox.margin>
+            <Button text="← Назад"
+                    onAction="#handleBackAction"
+                    styleClass="btn-back"
+                    prefHeight="46.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="🏠  Додати хаб"
+                    onAction="#handleAddHub"
+                    styleClass="btn-login"
+                    prefHeight="46.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
         </HBox>
-    </HBox>
 
-    <TextField fx:id="titleField" promptText="Назва хабу"/>
-    <TextArea fx:id="descriptionArea" promptText="Опис хабу" prefRowCount="3"/>
-
-    <HBox spacing="10.0">
-        <TextField fx:id="latitudeField" promptText="Широта (наприклад, 50.4501)"/>
-        <TextField fx:id="longitudeField" promptText="Довгота (наприклад, 30.5234)"/>
-    </HBox>
-
-    <TextField fx:id="slotsField" promptText="Кількість місць"/>
-
-    <HBox spacing="15.0" alignment="CENTER">
-        <CheckBox fx:id="wifiCheckBox" text="Wi-Fi" />
-        <CheckBox fx:id="generatorCheckBox" text="Генератор" />
-        <CheckBox fx:id="petsCheckBox" text="Можна з тваринами" />
-    </HBox>
-
-    <Button text="Додати хаб" onAction="#handleAddHub" prefWidth="150.0" style="-fx-background-color: #2196F3; -fx-text-fill: white; -fx-font-weight: bold;"/>
+    </VBox>
 </VBox>

@@ -1,41 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.noideasolutions.svitlo.controller.LoginController">
-    <padding>
-        <Insets bottom="20.0" left="40.0" right="40.0" top="20.0"/>
-    </padding>
+<VBox alignment="TOP_CENTER"
+      minWidth="480.0" minHeight="680.0"
+      prefWidth="480.0" prefHeight="680.0"
+      styleClass="root-container"
+      xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.noideasolutions.svitlo.controller.LoginController">
 
-    <Label text="Svitlo++">
-        <font>
-            <Font name="System Bold" size="24.0" />
-        </font>
-    </Label>
+    <stylesheets>
+        <URL value="@/com/noideasolutions/svitlo/styles/global.css" />
+    </stylesheets>
 
-    <Label text="Вхід у систему" textFill="#555555" />
+    <!-- Хвилястий верхній блок з логотипом -->
+    <StackPane styleClass="hero-header" prefHeight="300.0" minHeight="300.0">
+        <VBox alignment="CENTER" spacing="7.0">
+            <ImageView fx:id="logoImageView"
+                       fitWidth="160.0" fitHeight="160.0"
+                       pickOnBounds="true" preserveRatio="true"
+                       styleClass="logo-shadow"/>
+            <Label text="Svitlo++" styleClass="brand-title">
+                <font><Font name="System Bold" size="36.0"/></font>
+            </Label>
+            <Label text="Вхід у систему" styleClass="label-muted">
+                <font><Font size="14.0"/></font>
+            </Label>
+        </VBox>
+    </StackPane>
 
-    <VBox spacing="5.0">
-        <Label text="Логін:"/>
-        <TextField fx:id="usernameField" promptText="Введіть ваш логін..." />
+    <!-- Основна форма -->
+    <VBox spacing="18.0" fillWidth="true" styleClass="form-body">
+        <padding>
+            <Insets top="32.0" bottom="32.0" left="40.0" right="40.0"/>
+        </padding>
+
+        <!-- Логін -->
+        <VBox spacing="6.0">
+            <Label text="Логін" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="14.0"/></padding>
+                <Label text="👤" styleClass="input-icon-fa"/>
+                <TextField fx:id="usernameField"
+                           promptText="Введіть логін"
+                           styleClass="clean-field"
+                           HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+
+        <!-- Пароль -->
+        <VBox spacing="6.0">
+            <Label text="Пароль" styleClass="field-label"/>
+            <HBox styleClass="input-row" alignment="CENTER_LEFT" spacing="10.0">
+                <padding><Insets top="0" bottom="0" left="14.0" right="10.0"/></padding>
+                <Label text="🔒" styleClass="input-icon-fa"/>
+                <StackPane HBox.hgrow="ALWAYS">
+                    <PasswordField fx:id="passwordField"
+                                   promptText="Введіть ваш пароль"
+                                   styleClass="clean-field"/>
+                    <TextField fx:id="passwordTextField"
+                               promptText="Введіть ваш пароль"
+                               styleClass="clean-field"
+                               visible="false"/>
+                </StackPane>
+                <Button fx:id="togglePasswordButton"
+                        text="👁"
+                        styleClass="eye-button"
+                        onAction="#handleTogglePassword"/>
+            </HBox>
+        </VBox>
+
+        <!-- Помилка -->
+        <Label fx:id="errorLabel" styleClass="error-label" wrapText="true"/>
+
+        <!-- Кнопки: Увійти зліва, Реєстрація справа -->
+        <HBox spacing="12.0" fillHeight="false" alignment="CENTER">
+            <VBox.margin><Insets top="6.0"/></VBox.margin>
+            <Button text="Увійти"
+                    onAction="#handleLoginAction"
+                    styleClass="btn-login"
+                    prefHeight="48.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="Реєстрація"
+                    onAction="#handleGoToRegistrationAction"
+                    styleClass="btn-back"
+                    prefHeight="48.0"
+                    HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        </HBox>
+
     </VBox>
-
-    <VBox spacing="5.0">
-        <Label text="Пароль:"/>
-        <PasswordField fx:id="passwordField" promptText="Введіть ваш пароль..." />
-    </VBox>
-
-    <Label fx:id="errorLabel" textFill="RED" />
-
-    <HBox alignment="CENTER" spacing="15.0">
-        <Button onAction="#handleLoginAction" text="Увійти" prefWidth="100" prefHeight="30" />
-        <Button onAction="#handleGoToRegistrationAction" text="Реєстрація" prefWidth="100" prefHeight="30" />
-    </HBox>
 </VBox>
