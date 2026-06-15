@@ -6,6 +6,10 @@ import com.noideasolutions.svitlo.model.PartnerReward;
 import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.exception.SvitloException;
 
+/**
+ * Сервіс для управління бонусною системою та програмою лояльності.
+ * Забезпечує нарахування балів хостам за бронювання та списання балів користувачів при обміні на винагороди.
+ */
 public class BonusService {
 
     private final UserDAO userDAO;
@@ -16,10 +20,8 @@ public class BonusService {
     }
 
     /**
-     * Нараховує бали Хосту, коли Гість успішно забронював у нього місця.
-     */
- /**
-     * Нараховує бали Хосту, коли Гість успішно забронював у нього місця.
+     * Нараховує бонусні бали власнику хабу (хосту) за успішно заброньовані місця.
+     * Розраховує суму балів на основі кількості слотів та фіксованого тарифу.
      */
     public void awardPointsForBooking(Hub hub, int bookedSlots) {
         if (hub == null || bookedSlots <= 0) return;
@@ -39,8 +41,8 @@ public class BonusService {
     }
 
     /**
-     * Логіка обміну балів користувача на знижку партнера.
-     * @return true, якщо обмін успішний
+     * Списує бали користувача в обмін на обрану партнерську винагороду.
+     * Перевіряє платоспроможність користувача, оновлює БД та синхронізує стан об'єкта в пам'яті для UI.
      */
     public boolean redeemReward(User user, PartnerReward reward) {
         if (user == null || reward == null) return false;

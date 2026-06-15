@@ -6,8 +6,16 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Сервіс для сортування хабів за географічними та кількісними показниками.
+ * Використовує просторові розрахунки для визначення найближчих та найбільш містких локацій для користувача.
+ */
 public class HubSortingService {
 
+    /**
+     * Сортує список хабів із пріоритетом на мінімальну відстань до користувача.
+     * При однаковій відстані хаби додатково ранжуються за спаданням кількості вільних місць.
+     */
     public List<Hub> getSortedHubs(double userLat, double userLon, List<Hub> allHubs) {
         if (allHubs == null) {
             return new ArrayList<>();
@@ -31,6 +39,9 @@ public class HubSortingService {
         return sortedHubs;
     }
 
+    /**
+     * Обчислює географічну відстань у кілометрах між двома точками на поверхні Землі.
+     */
     private double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
         final int earthRadiusKm = 6371;
 
@@ -48,6 +59,11 @@ public class HubSortingService {
 
         return earthRadiusKm * c;
     }
+
+    /**
+     * Сортує список хабів із пріоритетом на максимальну кількість доступних вільних місць.
+     * При однаковій кількості місць локації додатково ранжуються за зростанням відстані від користувача.
+     */
     public List<Hub> getSortedHubsBySlots(double userLat, double userLon, List<Hub> allHubs) {
         if (allHubs == null) {
             return new ArrayList<>();

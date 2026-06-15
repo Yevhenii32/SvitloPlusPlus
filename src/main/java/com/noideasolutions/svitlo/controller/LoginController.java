@@ -20,6 +20,12 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Контролер для керування екраном авторизації користувача (Вхід у систему).
+ * Забезпечує перевірку облікових даних через сервіс автентифікації,
+ * керування видимістю пароля за допомогою перемикання полів введення,
+ * ініціалізацію сесії користувача та безпечний перехід до головного дашборду чи екрану реєстрації.
+ */
 public class LoginController {
 
     @FXML
@@ -43,6 +49,10 @@ public class LoginController {
     private final AuthService authService = new AuthService();
     private boolean isPasswordVisible = false;
 
+    /**
+     * Автоматичний метод ініціалізації JavaFX. Викликається після завантаження FXML-файлу.
+     * Відповідає за безпечне завантаження зображення логотипу з ресурсів додатка.
+     */
     @FXML
     public void initialize() {
         // Завантажуємо логотип додатка при старті екрану
@@ -54,6 +64,11 @@ public class LoginController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Око" (показати/сховати пароль).
+     * Синхронізує текст між PasswordField та TextField, змінює їх видимість
+     * та оновлює емодзі-іконку на кнопці.
+     */
     @FXML
     private void handleTogglePassword() {
         if (!isPasswordVisible) {
@@ -73,6 +88,11 @@ public class LoginController {
         }
     }
 
+    /**
+     * Обробник події для кнопки "Увійти".
+     * Зчитує дані з активного поля пароля, валідує заповнення, звертається до AuthService,
+     * записує користувача в глобальну сесію та трансформує поточне вікно в головний дашборд.
+     */
     @FXML
     public void handleLoginAction(ActionEvent event) {
         String username = usernameField.getText();
@@ -113,6 +133,10 @@ public class LoginController {
         }
     }
 
+    /**
+     * Обробник події для гіперпосилання або кнопки "Зареєструватися".
+     * Перемикає поточну сцену вікна на форму реєстрації, адаптуючи габарити вікна під новий макет.
+     */
     @FXML
     public void handleGoToRegistrationAction(ActionEvent event) {
         try {

@@ -2,6 +2,10 @@ package com.noideasolutions.svitlo.service;
 
 import com.noideasolutions.svitlo.model.Hub;
 
+/**
+ * Інтерфейс-контракт для бізнес-сервісу управління бронюваннями в системі.
+ * Визначає обов'язкові методи для перевірки, фіксації та скасування резервування місць у хабах.
+ */
 public interface IBookingService {
     boolean canBook(Hub hub, int requestedSlots);
     void bookSlots(Hub hub, int userId, int requestedSlots);

@@ -7,6 +7,10 @@ import com.noideasolutions.svitlo.exception.InvalidCredentialsException;
 import com.noideasolutions.svitlo.exception.SvitloException;
 import org.mindrot.jbcrypt.BCrypt;
 
+/**
+ * Сервіс для управління процесами автентифікації, реєстрації та безпеки користувачів.
+ * Відповідає за безпечне хешування паролів та перевірку статусів блокування акаунтів.
+ */
 public class AuthService {
 
     private UserDAO userDAO;
@@ -16,7 +20,8 @@ public class AuthService {
     }
 
     /**
-     * Реєстрація нового користувача
+     * Реєструє нового користувача в системі, використовуючи алгоритм BCrypt для шифрування пароля.
+     * Запобігає дублюванню нікнеймів та кидає виняток, якщо запис у базу даних завершився невдачею.
      */
     public void registerUser(String username, String password, String role) {
         // Базова валідація залишається стандартним винятком
@@ -43,9 +48,9 @@ public class AuthService {
     }
 
     /**
-     * Авторизація (Вхід у систему)
+     * Проводить авторизацію користувача через перевірку відповідності введеного пароля його хешу.
+     * Валідує статус блокування облікового запису перед наданням доступу до системи.
      */
-
     public User login(String username, String password) {
         System.out.println(" Спроба входу для '" + username + "'...");
 

@@ -6,6 +6,10 @@ import com.noideasolutions.svitlo.model.User;
 
 import java.util.List;
 
+/**
+ * Сервіс для управління хабами у системі.
+ * Забезпечує перевірку прав доступу хостів, валідацію параметрів хабів та отримання їхніх списків із БД.
+ */
 public class HubService {
 
     private HubDAO hubDAO;
@@ -15,7 +19,8 @@ public class HubService {
     }
 
     /**
-     * Створення нового хабу (Додано параметри зручностей)
+     * Перевіряє авторизацію та роль користувача, валідує вхідні дані та реєструє новий хаб у системі.
+     * Автоматично пов'язує створюваний хаб із унікальним ідентифікатором поточного хоста із сесії.
      */
     public boolean createHub(String title, String description, double latitude, double longitude, int slotsTotal,
                              boolean hasWifi, boolean hasGenerator, boolean allowsPets) {
@@ -61,7 +66,8 @@ public class HubService {
     }
 
     /**
-     * Отримання списку всіх активних хабів для відображення на головному екрані/карті
+     * Повертає список усіх активних хабів, що доступні для відображення на інтерактивній карті.
+     * Використовується для первинного завантаження дашборду.
      */
     public List<Hub> getAllActiveHubs() {
         System.out.println(" Завантажуємо список доступних хабів з бази...");
@@ -69,7 +75,8 @@ public class HubService {
     }
 
     /**
-     * Пошук конкретного хабу за ID
+     * Виконує пошук конкретного хабу за його унікальним ідентифікатором.
+     * Використовується для отримання детальної інформації при кліку на маркер карти.
      */
     public Hub getHubById(int id) {
         return hubDAO.findById(id);

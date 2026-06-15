@@ -10,6 +10,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
+/**
+ * Контролер для керування вікном створення нового інфраструктурного хабу.
+ * Забезпечує збір даних з форми, їх валідацію
+ * та передачу об'єкта у сервісний шар для збереження в базі даних.
+ */
 public class CreateHubController {
 
     @FXML private TextField titleField;
@@ -23,6 +28,11 @@ public class CreateHubController {
 
     private HubService hubService = new HubService();
 
+    /**
+     * Обробник події кліку на кнопку "Створити хаб".
+     * Валідує заповнення полів, перевіряє формати чисел, викликає метод сервісу
+     * та у разі успіху закриває поточне модальне вікно.
+     */
     @FXML
     private void handleAddHub(ActionEvent event) {
         String title = titleField.getText();
@@ -75,6 +85,10 @@ public class CreateHubController {
         }
     }
 
+    /**
+     * Обробник події для кнопки "Назад" або "Скасувати".
+     * Закриває поточний Stage без збереження змін, повертаючи фокус на головний екран.
+     */
     @FXML
     private void handleBackAction(ActionEvent event) {
         // Прибираємо SceneSwitcher. switchTo плодив дублікат головного меню.
@@ -83,6 +97,9 @@ public class CreateHubController {
         stage.close();
     }
 
+    /**
+     * Внутрішній допоміжний метод для створення та відображення діалогових вікон сповіщень.
+     */
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

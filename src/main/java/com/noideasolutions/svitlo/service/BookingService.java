@@ -8,6 +8,10 @@ import com.noideasolutions.svitlo.exception.SvitloException;
 import com.noideasolutions.svitlo.exception.NotEnoughSlotsException;
 import com.noideasolutions.svitlo.exception.HubNotFoundException;
 
+/**
+ * Сервіс для управління процесами бронювання та звільнення місць у хабах.
+ * Зв'язує бізнес-правила системи з шаром доступу до бази даних (DAO).
+ */
 public class BookingService implements IBookingService {
 
     private final HubDAO hubDAO;
@@ -23,6 +27,10 @@ public class BookingService implements IBookingService {
         this.bookingDAO = bookingDAO;
     }
 
+    /**
+     * Перевіряє можливість бронювання місць відповідно до лімітів хабу.
+     * Повертає true, якщо хаб активний і запитувана кількість слотів є в наявності.
+     */
     @Override
     public boolean canBook(Hub hub, int requestedSlots) {
         if (hub == null) return false;
@@ -34,6 +42,10 @@ public class BookingService implements IBookingService {
         return requestedSlots <= hub.getSlotsAvailable();
     }
 
+    /**
+     * Створює нове бронювання, списує місця у хабі та нараховує бонуси хосту.
+     * Якщо оновлення хабу зривається, автоматично видаляє створене бронювання.
+     */
     @Override
     public void bookSlots(Hub hub, int userId, int requestedSlots) {
         validateHub(hub);
@@ -82,6 +94,10 @@ public class BookingService implements IBookingService {
         }
     }
 
+    /**
+     * Скасовує бронювання користувача та повертає вивільнені місця хабу.
+     * Видаляє запис про бронювання з бази даних та коригує лічильник слотів.
+     */
     @Override
     public void cancelBooking(Hub hub, int bookingId, int releasedSlots) {
         validateHub(hub);
@@ -107,6 +123,10 @@ public class BookingService implements IBookingService {
         }
     }
 
+    /**
+     * Перевіряє коректність структури даних хабу перед виконанням операцій.
+     * Запобігає появі від'ємних значень місткості або вільних слотів.
+     */
     private void validateHub(Hub hub) {
         if (hub == null) {
             throw new HubNotFoundException("Хаб не знайдено.");

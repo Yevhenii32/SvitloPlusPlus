@@ -15,6 +15,12 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
+/**
+ * Контролер для керування екраном реєстрації нових користувачів у системі "Svitlo++".
+ * Забезпечує збір та первинну валідацію реєстраційних даних (збіг паролів, заповненість полів),
+ * підтримує інтерактивний механізм приховування/відображення символів паролів
+ * та взаємодіє з AuthService для створення облікових записів у базі даних із ролями GUEST або HOST.
+ */
 public class RegistrationController {
 
     @FXML private TextField usernameField;
@@ -34,6 +40,10 @@ public class RegistrationController {
     private boolean isPasswordVisible = false;
     private boolean isConfirmPasswordVisible = false;
 
+    /**
+     * Метод ініціалізації JavaFX. Автоматично викликається після завантаження FXML-файлу.
+     * Заповнює випадаючий список ролей та завантажує логотип програми.
+     */
     @FXML
     public void initialize() {
         roleComboBox.getItems().addAll("GUEST", "HOST");
@@ -47,6 +57,11 @@ public class RegistrationController {
         }
     }
 
+    /**
+     * Обробник події для перемикання видимості основного пароля.
+     * Переносить введене значення між PasswordField та звичайним TextField
+     * і змінює текстовий маркер кнопки (емодзі).
+     */
     @FXML
     private void handleTogglePassword() {
         if (!isPasswordVisible) {
@@ -64,6 +79,10 @@ public class RegistrationController {
         }
     }
 
+    /**
+     * Обробник події для перемикання видимості поля підтвердження пароля.
+     * Працює аналогічно методу handleTogglePassword, але для другої пари полів.
+     */
     @FXML
     private void handleToggleConfirmPassword() {
         if (!isConfirmPasswordVisible) {
@@ -81,6 +100,12 @@ public class RegistrationController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Зареєструватися".
+     * Збирає дані з урахуванням активних (видимих) полів введення, проводить повну
+     * клієнтську валідацію на пусті значення та ідентичність паролів. При успішній перевірці
+     * делегує створення акаунта сервісу та обробляє можливі виключення.
+     */
     @FXML
     public void handleRegisterAction(ActionEvent event) {
         String username = usernameField.getText();
@@ -120,6 +145,10 @@ public class RegistrationController {
         }
     }
 
+    /**
+     * Обробник події для повернення на екран авторизації.
+     * Завантажує Login.fxml та адаптує розміри вікна під компактні габарити авторизаційного вікна.
+     */
     @FXML
     public void handleBackToLoginAction(ActionEvent event) {
         try {

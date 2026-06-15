@@ -55,6 +55,12 @@ import org.mapsforge.map.awt.view.MapView;
 import org.mapsforge.core.model.Point;
 import org.mapsforge.map.rendertheme.InternalRenderTheme;
 
+/**
+ * Головний керуючий контролер панелі моніторингу (Дашборду) системи.
+ * Клас координує взаємодію між компонентами JavaFX (список хабів, система швидких фільтрів,
+ * управління радіусом радару пошуку) та вбудованим Swing-компонентом Mapsforge для відображення
+ * офлайнових векторних карт. Безпечно синхронізує стани інтерфейсу між потоками JavaFX FX та AWT EDT.
+ */
 public class MainDashboardController {
 
     @FXML
@@ -99,6 +105,11 @@ public class MainDashboardController {
     private static LatLong lastMapCenter = new LatLong(50.4501, 30.5234);
     private static byte lastZoomLevel = 12;
 
+    /**
+     * Обробник події кліку на кнопку "Мій профіль".
+     * Створює нове незалежне вікно для відображення персональних даних, залишаючи
+     * головний екран і карту активними на задньому плані.
+     */
     @FXML
     private void handleOpenProfileAction(ActionEvent event) {
         try {
@@ -125,6 +136,11 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Автоматичний метод ініціалізації контролера.
+     * Проводить перевірку ролі користувача з сесії, налаштовує видимість адміністративних елементів
+     * та викачує первинний список хабів.
+     */
     @FXML
     public void initialize() {
         // 1. Отримуємо поточного користувача та перевіряємо, чи він є хостом
@@ -160,7 +176,8 @@ public class MainDashboardController {
     }
 
     /**
-     * МЕТОД ОБРОБКИ ФІЛЬТРІВ (Викликається при кліку на будь-який чекбокс)
+     * Загальний обробник подій для швидких фільтрів.
+     * Спрацьовує при зміні стану будь-якого з чекбоксів (Wi-Fi, Генератор, Тварини).
      */
     @FXML
     public void handleFilterAction() {
@@ -168,7 +185,10 @@ public class MainDashboardController {
     }
 
     /**
-     * Допоміжний метод, який синхронно оновлює і ListView, і карту відповідно до фільтрів
+     * Очищає, фільтрує та повністю оновлює відображення списків JavaFX та маркерів Swing на карті.
+     * Метод розділено на безпечну логічну фільтрацію у поточному бізнес-потоці, швидке оновлення UI,
+     * а також безпечну інструкцію перемальовування
+     * графіки Swing.
      */
     public void updateDashboardData() {
         boolean needWifi = filterWifi != null && filterWifi.isSelected();
@@ -235,6 +255,12 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Конструює та інтегрує векторну карту Mapsforge у контейнер JavaFX.
+     * Створює міст сумісності, ініціалізує внутрішній кеш тайлів,
+     * підключає локальний файл карти України (.map), налаштовує правила рендерингу OSMARENDER,
+     * а також жорстко лімітує переміщення камери (Bounding Box) кордонами України для оптимізації пам'яті.
+     */
     private void initOfflineMap() {
         SwingNode swingNode = new SwingNode();
         mapContainer.getChildren().add(swingNode);
@@ -296,6 +322,11 @@ public class MainDashboardController {
         });
     }
 
+    /**
+     * Обробник події кліку перемикача ролі користувача.
+     * Динамічно оновлює стан ролі (GUEST / HOST) у сесії, адаптує інтерфейс
+     * та миттєво синхронізує зміни з таблицею користувачів у базі даних.
+     */
     @FXML
     public void handleRoleSwitch(ActionEvent event) {
         boolean isSelected = roleToggleButton.isSelected();
@@ -333,6 +364,12 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Додати хаб".
+     * Відкриває форму створення через блокуючий виклик.
+     * Потік виконання дашборду засинає і відновлюється автоматично лише після закриття форми створення,
+     * що гарантує миттєве оновлення локального кешу та перемальовування маркерів на карті.
+     */
     @FXML
     private void handleCreateHubAction(ActionEvent event) {
         try {
@@ -366,6 +403,11 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Вийти".
+     * Анулює поточну активну сесію користувача та повертає додаток до вікна авторизації,
+     * скидаючи розміри вікна до стартових компактних параметрів.
+     */
     @FXML
     public void handleLogoutAction(ActionEvent event) {
         UserSession.getInstance().logout();
@@ -382,6 +424,13 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Метод малювання маркерів на Swing-карті за допомогою Java2D API.
+     * Повністю очищає попередні нашарування маркерів, конструює у пам'яті векторне зображення
+     * червоного маркера.
+     * Створює підкласи Marker для перевизначення логіки методу onTap, реалізуючи
+     * швидке фокусування та відкриття деталей хабу при кліку безпосередньо на коло карти.
+     */
     private void drawHubsOnMap(List<Hub> hubsToDraw) {
         if (mapView == null) return;
 
@@ -450,6 +499,11 @@ public class MainDashboardController {
         mapView.repaint();
     }
 
+    /**
+     * Обробник події кліку кнопки увімкнення/вимкнення геолокаційного радара.
+     * Зчитує параметри радіуса та гео-координат, проводить валідацію чисел
+     * та запускає або зупиняє пошук хабів через інфраструктурний RadarService.
+     */
     @FXML
     private void handleRadarToggle(ActionEvent event) {
         User currentUser = UserSession.getInstance().getCurrentUser();
@@ -499,6 +553,9 @@ public class MainDashboardController {
         }
     }
 
+    /**
+     * Універсальний допоміжний метод для швидкої генерації та виклику вікон сповіщень JavaFX.
+     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -507,6 +564,11 @@ public class MainDashboardController {
         alert.showAndWait();
     }
 
+    /**
+     * Конструює та відкриває нове вікно детальної інформації про хаб поверх поточної карти.
+     * Передає посилання на модель обраного хабу, а також ін'єктує екземпляр поточного
+     * MainDashboardController у дочірній контролер деталей.
+     */
     private void openHubDetailsAsNewWindow(Hub hub) {
         try {
             // 1. Завантажуємо FXML вікна деталей/бронювання

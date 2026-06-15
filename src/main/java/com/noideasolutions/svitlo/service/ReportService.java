@@ -8,6 +8,10 @@ import com.noideasolutions.svitlo.model.Report;
 import com.noideasolutions.svitlo.model.User;
 import com.noideasolutions.svitlo.exception.SvitloException;
 
+/**
+ * Сервіс модерації та безпеки, що обробляє скарги користувачів у системі "Svitlo++".
+ * Реалізує автоматичне блокування акаунтів порушників та деактивацію їхніх хабів при досягненні ліміту скарг.
+ */
 public class ReportService {
 
     private final ReportDAO reportDAO;
@@ -22,7 +26,8 @@ public class ReportService {
     }
 
     /**
-     * Обробляє нову скаргу від користувача та автоматично модерує хаб і його власника.
+     * Фіксує скаргу на хаб, оновлює його лічильник та збільшує кількість страйків власника.
+     * При досягненні ліміту автоматично блокує хоста та приховує всі його хаби з мапи додатку.
      */
     public void submitReport(int reporterId, Hub hub, String reason) {
         if (hub == null || reason == null || reason.isBlank()) {
@@ -84,7 +89,8 @@ public class ReportService {
     }
 
     /**
-     * Обробляє скаргу на користувача (хоста) безпосередньо з його профілю.
+     * Реєструє скаргу безпосередньо на профіль користувача (хоста).
+     * Нараховує штрафний бал та запускає процедуру автоматичного бану і приховування хабів у разі перевищення ліміту.
      */
     public void submitUserReport(int reporterId, int reportedUserId, String reason) {
         if (reason == null || reason.isBlank()) {

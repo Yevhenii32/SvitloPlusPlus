@@ -9,6 +9,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Сервіс для періодичного фонового пошуку активних хабів навколо геопозиції користувача.
+ * Використовує планувальник потоків для регулярного сканування та надсилає сповіщення.
+ */
 public class RadarService {
     private final SystemNotificationService notificationService;
     private final HubDAO hubDAO;
@@ -25,6 +29,10 @@ public class RadarService {
         this.notificationService = new SystemNotificationService();
     }
 
+    /**
+     * Запускає фоновий пошук хабів у заданому радіусі кожні 60 секунд.
+     * Автоматично скидає попередній пошуковий процес перед запуском нового планувальника.
+     */
     public void startSearch(int guestId, double guestLatitude, double guestLongitude, double radiusKm) {
         stopSearch();
 
@@ -43,6 +51,10 @@ public class RadarService {
         }, 0, 60, TimeUnit.SECONDS);
     }
 
+    /**
+     * Зупиняє активний фоновий потік сканування радара.
+     * Безпечно завершує роботу планувальника асинхронних завдань.
+     */
     public void stopSearch() {
         if (executor != null && !executor.isShutdown()) {
             executor.shutdownNow();
@@ -50,6 +62,10 @@ public class RadarService {
         }
     }
 
+    /**
+     * Аналізує координати всіх активних хабів та шукає збіги за заданим радіусом.
+     * Ініціює відправку нотифікації у разі виявлення вільного хабу.
+     */
     private void checkNearbyHubs(int guestId, double guestLatitude, double guestLongitude, double radiusKm) {
         List<Hub> activeHubs = hubDAO.findAllActive();
 
@@ -79,6 +95,11 @@ public class RadarService {
             showWaitingMessage(guestId);
         }
     }
+
+    /**
+     * Надсилає одноразове сповіщення про те, що радар активний, але вільних хабів поруч поки немає.
+     * Перенаправляє виклик у головний потік JavaFX UI.
+     */
     private void showWaitingMessage(int guestId) {
         if (!waitingMessageShown) {
             Platform.runLater(() ->
@@ -88,12 +109,20 @@ public class RadarService {
         }
     }
 
+    /**
+     * Формує сповіщення про успішне виявлення хабу неподалік.
+     * Безпечно делегує оновлення інтерфейсу в потік FX Application Thread.
+     */
     private void sendNotification(int guestId, Hub hub, double distanceKm) {
         Platform.runLater(() ->
                 notificationService.notifyHubFound(guestId, hub, distanceKm)
         );
     }
 
+    /**
+     * Обчислює відстань між двома точками за координатами.
+     * Реалізує математичну формулу з фіксованим радіусом Землі 6371 км.
+     */
     private double calculateDistanceKm(double lat1, double lon1, double lat2, double lon2) {
         final int earthRadiusKm = 6371;
 
@@ -111,6 +140,11 @@ public class RadarService {
 
         return earthRadiusKm * c;
     }
+
+    /**
+     * Створює об'єкт запиту для фіксації параметрів пошуку у системі.
+     * Використовує дефолтний початковий радіус сканування в 1 кілометр.
+     */
     public RadarRequest createSearchRequest(int guestId, double guestLatitude, double guestLongitude) {
         if (guestId <= 0) {
             throw new IllegalArgumentException("Guest ID must be positive");

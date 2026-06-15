@@ -16,6 +16,12 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 
+/**
+ * Контролер для керування модальним вікном профілю користувача та бонусної програми.
+ * Забезпечує відображення поточних облікових даних (ім'я, роль, баланс бонусних балів),
+ * формоутворення кастомного списку партнерських винагород (промокоди, знижки)
+ * та обробку транзакцій обміну накопичених балів на обрані бонуси через BonusService.
+ */
 public class UserProfileController {
 
     @FXML
@@ -33,6 +39,11 @@ public class UserProfileController {
     private BonusService bonusService;
     private User currentUser;
 
+    /**
+     * Автоматичний метод ініціалізації JavaFX. Викликається після завантаження відповідного FXML-файлу.
+     * Ініціалізує сервіси, затягує профіль із сесії, налаштовує фабрику комірок (Cell Factory)
+     * для красивого рендерингу списку винагород та завантажує доступні партнерські пропозиції.
+     */
     @FXML
     public void initialize() {
         this.bonusService = new BonusService();
@@ -58,6 +69,10 @@ public class UserProfileController {
         loadMockRewards();
     }
 
+    /**
+     * Внутрішній допоміжний метод для синхронізації UI з актуальним станом моделі користувача.
+     * Викликається при старті вікна та після успішного списання балів.
+     */
     private void updateUserInfo() {
         if (currentUser != null) {
             usernameLabel.setText("Користувач: " + currentUser.getUsername());
@@ -66,6 +81,10 @@ public class UserProfileController {
         }
     }
 
+    /**
+     * Генерує та наповнює ListView базовим набором тестових винагород у пам'яті.
+     * Використовується для демонстрації можливостей підсистеми згідно з технічним завданням.
+     */
     private void loadMockRewards() {
         // Оскільки у нас за ТЗ симуляція, просто генеруємо їх у пам'яті
         rewardsListView.getItems().add(new PartnerReward(1, "Безкоштовна кава", "Aroma Kava", 150));
@@ -73,6 +92,12 @@ public class UserProfileController {
         rewardsListView.getItems().add(new PartnerReward(3, "Промокод 100 грн на таксі", "Uklon", 300));
     }
 
+    /**
+     * Обробник події кліку на кнопку "Обміняти бали".
+     * Валідує вибір елемента у списку, передає запит до BonusService.
+     * У разі успішного списання балів — виводить вікно успіху та миттєво оновлює
+     * баланс рахунку на екрані користувача.
+     */
     @FXML
     private void handleRedeemAction(ActionEvent event) {
         PartnerReward selectedReward = rewardsListView.getSelectionModel().getSelectedItem();
@@ -100,6 +125,10 @@ public class UserProfileController {
         }
     }
 
+    /**
+     * Закриває модальне вікно профілю, повертаючи фокус користувача на дашборд.
+     * Завдяки архітектурі вікон, головний екран з мапою залишається активним на фоні.
+     */
     @FXML
     private void handleBackAction(ActionEvent event) {
         // Отримуємо поточне вікно профілю та просто закриваємо його.
@@ -108,6 +137,9 @@ public class UserProfileController {
         stage.close();
     }
 
+    /**
+     * Універсальний службовий метод для швидкої генерації діалогових вікон сповіщень.
+     */
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

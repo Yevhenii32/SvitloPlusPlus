@@ -1,6 +1,6 @@
 package com.noideasolutions.svitlo.controller;
 
-import com.noideasolutions.svitlo.dao.HubDAO; // ДОДАНО ІМПОРТ
+import com.noideasolutions.svitlo.dao.HubDAO;
 import com.noideasolutions.svitlo.dao.UserDAO;
 import com.noideasolutions.svitlo.model.Hub;
 import com.noideasolutions.svitlo.model.User;
@@ -23,6 +23,11 @@ import javafx.stage.Stage;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Контролер для керування вікном профілю хоста (власника хабу).
+ * Забезпечує асинхронне завантаження даних про власника та його активні об'єкти з БД,
+ * а також надає можливість відкрити прямий чат або надіслати скаргу модераторам.
+ */
 public class HostProfileController {
 
     @FXML private Label hostNameLabel;
@@ -34,12 +39,20 @@ public class HostProfileController {
     private final ReportService reportService = new ReportService();
     private int hostId;
 
-    // САМЕ ЦЕЙ МЕТОД ШУКАЄ HubDetailsController
+    /**
+     * Встановлює ID хоста. Цей метод викликається з боку HubDetailsController
+     * при переході на профіль власника. Одразу запускає завантаження даних.
+     */
     public void setHostId(int hostId) {
         this.hostId = hostId;
         loadHostProfileData();
     }
 
+    /**
+     * Асинхронно завантажує інформацію про профіль користувача та його хаби.
+     * Використовує окремий потік для запитів до БД, щоб уникнути фризів UI,
+     * та повертає керування в потік JavaFX через Platform.runLater для оновлення сцени.
+     */
     private void loadHostProfileData() {
         // Завантажуємо дані у фоновому потоці, щоб UI додатка не зависав
         new Thread(() -> {
@@ -77,6 +90,11 @@ public class HostProfileController {
         }).start();
     }
 
+    /**
+     * Обробник події кліку на кнопку "Написати".
+     * Перевіряє авторизацію поточного користувача, захищає від створення чату із самим собою,
+     * ініціалізує сесію тимчасового чату та відкриває нове вікно листування.
+     */
     @FXML
     private void handleChatAction(ActionEvent event) {
         try {
@@ -114,6 +132,11 @@ public class HostProfileController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Поскаржитись".
+     * Відкриває діалогове вікно для введення причини скарги, валідує текст,
+     * відправляє запит у ReportService та гнучко обробляє можливі помилки бази даних.
+     */
     @FXML
     private void handleReportAction(ActionEvent event) {
         try {
@@ -167,12 +190,19 @@ public class HostProfileController {
         }
     }
 
+    /**
+     * Обробник події кліку на кнопку "Закрити" або "Назад".
+     * Закриває поточний Stage профілю та повертає фокус на попереднє вікно деталей хабу.
+     */
     @FXML
     private void handleCloseAction(ActionEvent event) {
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.close();
     }
 
+    /**
+     * Внутрішній допоміжний метод для створення та виклику вікон сповіщень (Alert Dialogs).
+     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

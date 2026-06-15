@@ -25,6 +25,12 @@ import javafx.stage.Modality;
 
 import java.util.Optional;
 
+/**
+ * Контролер для керування вікном детальної інформації про конкретний хаб.
+ * Забезпечує відображення характеристик хабу (координати, зручності, дані хоста),
+ * реалізує логіку бронювання вільних місць, надсилання скарг
+ * та інтеграцію з головним дашбордом для синхронізації даних.
+ */
 public class HubDetailsController {
 
     @FXML
@@ -39,7 +45,6 @@ public class HubDetailsController {
     @FXML
     private Label slotsInfoLabel;
 
-    // НОВІ ПОЛЯ ДЛЯ ЗВ'ЯЗКУ З ОНОВЛЕНИМ FXML
     @FXML
     private Label coordinatesLabel;
 
@@ -66,6 +71,11 @@ public class HubDetailsController {
     private final ReportService reportService = new ReportService();
     private final UserDAO userDAO = new UserDAO();
 
+    /**
+     * Заповнює всі елементи графічного інтерфейсу даними переданого хабу.
+     * Проводить перевірку на наявність опису, форматує координати, виводить статус зручностей
+     * та підвантажує актуальну інформацію про хоста з бази даних.
+     */
     public void setHubData(Hub hub) {
         this.currentHub = hub;
 
@@ -104,10 +114,19 @@ public class HubDetailsController {
         }
     }
 
+    /**
+     * Внутрішній метод для оновлення текстового індикатора кількості місць.
+     * Виводить актуальне співвідношення доступних місць до загальних.
+     */
     private void updateSlotsInfo() {
         slotsInfoLabel.setText("Доступно місць: " + currentHub.getSlotsAvailable() + " з " + currentHub.getSlotsTotal());
     }
 
+    /**
+     * Обробник події кліку на кнопку "Забронювати".
+     * Валідує введену кількість місць, перевіряє авторизацію, викликає бізнес-сервіс бронювання,
+     * оновлює інтерфейс головного дашборду та відкриває можливість комунікації з хостом.
+     */
     @FXML
     private void handleBook(ActionEvent event) {
         String slotsStr = bookingSlotsField.getText();
@@ -150,6 +169,10 @@ public class HubDetailsController {
         }
     }
 
+    /**
+     * Обробник події для відкриття вікна чату.
+     * Завантажує відповідну FXML-сцену, передає туди параметри поточної сесії чату та відкриває її.
+     */
     @FXML
     private void handleOpenChat(ActionEvent event) {
         try {
@@ -179,6 +202,11 @@ public class HubDetailsController {
         }
     }
 
+    /**
+     * Обробник події для реєстрації скарги на поточний хаб.
+     * Викликає модальний діалог введення тексту, передає скаргу у ReportService,
+     * оновлює відображення дашборду (на випадок приховування заблокованого об'єкта) та закриває картку деталей.
+     */
     @FXML
     private void handleReport(ActionEvent event) {
         TextInputDialog dialog = new TextInputDialog();
@@ -215,6 +243,9 @@ public class HubDetailsController {
         });
     }
 
+    /**
+     * Закриває поточне вікно деталей хабу, повертаючи фокус користувача на головну карту.
+     */
     @FXML
     private void handleBack(ActionEvent event) {
         // Просто закриваємо це вікно, і користувач одразу бачить активну карту під ним
@@ -222,6 +253,11 @@ public class HubDetailsController {
         stage.close();
     }
 
+    /**
+     * Обробник кліку миші по текстовому індикатору хоста (клік по посиланню/імені).
+     * Завантажує та відкриває нове модальне вікно профілю власника хабу HostProfile.fxml,
+     * блокуючи взаємодію з вікном деталей до моменту закриття профілю.
+     */
     @FXML
     private void handleOpenHostProfileAction(MouseEvent event) {
         if (currentHub == null) return;
@@ -257,6 +293,9 @@ public class HubDetailsController {
         }
     }
 
+    /**
+     * Допоміжний метод для швидкого виклику діалогових вікон сповіщень.
+     */
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -265,6 +304,10 @@ public class HubDetailsController {
         alert.showAndWait();
     }
 
+    /**
+     * Ін'єктує посилання на головний дашборд додатка.
+     * Необхідно для виклику методів оновлення маркерів мапи при зміні стану хабу.
+     */
     public void setMainDashboardController(MainDashboardController mainDashboardController) {
         this.mainDashboardController = mainDashboardController;
     }
